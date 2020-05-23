@@ -1,7 +1,6 @@
 package operations_test
 
 import (
-	"io"
 	"net/http"
 	"testing"
 
@@ -50,6 +49,6 @@ type fakeScraper struct {
 	data *ScrapedArticleData
 }
 
-func (f *fakeScraper) Run(io.Reader, string) (*ScrapedArticleData, error) {
+func (f *fakeScraper) Run([]byte, string) (*ScrapedArticleData, error) {
 	return f.data, nil
 }

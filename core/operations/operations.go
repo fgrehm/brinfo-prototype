@@ -1,9 +1,12 @@
 package operations
 
 import (
+	"bytes"
+	"io/ioutil"
 	neturl "net/url"
 	"time"
 
+	"github.com/dimchansky/utfbom"
 	"github.com/gocolly/colly/v2"
 )
 
@@ -40,6 +43,12 @@ func makeRequest(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	body, err = ioutil.ReadAll(utfbom.SkipOnly(bytes.NewBuffer(body)))
+	if err != nil {
+		return nil, err
+	}
+
 	return body, nil
 }
 

@@ -1,13 +1,10 @@
 package operations
 
 import (
-	"bytes"
 	"errors"
 
 	. "github.com/fgrehm/brinfo/core"
 	. "github.com/fgrehm/brinfo/core/scrapers"
-
-	"github.com/dimchansky/utfbom"
 )
 
 type InspectArticleInput struct {
@@ -41,8 +38,7 @@ func InspectArticle(input InspectArticleInput) (*InspectedArticleData, error) {
 		scraper = DefaultArticleScraper
 	}
 
-	buf := bytes.NewBuffer(body)
-	data, err := scraper.Run(utfbom.SkipOnly(buf), url)
+	data, err := scraper.Run(body, url)
 	if err != nil {
 		return nil, err
 	}

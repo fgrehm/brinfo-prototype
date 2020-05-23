@@ -1,7 +1,6 @@
 package core
 
 import (
-	"io"
 	"time"
 )
 
@@ -20,7 +19,7 @@ type ContentSourceRepo interface {
 
 type ArticleScraper interface {
 	// TODO: Add context argument
-	Run(articleHtml io.Reader, url string) (*ScrapedArticleData, error)
+	Run(articleHtml []byte, url string) (*ScrapedArticleData, error)
 }
 
 type ScrapedArticleData struct {

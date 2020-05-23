@@ -1,14 +1,11 @@
 package operations
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	neturl "net/url"
 
 	. "github.com/fgrehm/brinfo/core"
-
-	"github.com/dimchansky/utfbom"
 )
 
 type ScrapeArticleContentInput struct {
@@ -46,8 +43,7 @@ func ScrapeArticleContent(input ScrapeArticleContentInput) (*ScrapedArticleData,
 		return nil, err
 	}
 
-	buf := bytes.NewBuffer(body)
-	data, err := cs.ArticleScraper.Run(utfbom.SkipOnly(buf), url)
+	data, err := cs.ArticleScraper.Run(body, url)
 	if err != nil {
 		return nil, err
 	}

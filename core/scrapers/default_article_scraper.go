@@ -1,9 +1,9 @@
 package scrapers
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
-	"io"
 	"strings"
 	"time"
 
@@ -24,9 +24,9 @@ func init() {
 
 type defaultArticleScraper struct{}
 
-func (f *defaultArticleScraper) Run(articleHtml io.Reader, url string) (*core.ScrapedArticleData, error) {
+func (f *defaultArticleScraper) Run(articleHtml []byte, url string) (*core.ScrapedArticleData, error) {
 	info := htmlinfo.NewHTMLInfo()
-	if err := info.Parse(articleHtml, &url, nil); err != nil {
+	if err := info.Parse(bytes.NewBuffer(articleHtml), &url, nil); err != nil {
 		return nil, err
 	}
 	oembed := info.GenerateOembedFor(url)
