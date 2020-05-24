@@ -9,8 +9,6 @@ import (
 
 	"github.com/fgrehm/brinfo/core"
 	op "github.com/fgrehm/brinfo/core/operations"
-	"github.com/fgrehm/brinfo/core/scrapers"
-	mem "github.com/fgrehm/brinfo/storage/inmemory"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -25,13 +23,6 @@ var scrapeCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-
-		repo := mem.NewContentSourceRepo()
-		repo.Register(&core.ContentSource{
-			ID:             "br-gov-sp",
-			Host:           "www.saopaulo.sp.gov.br",
-			ArticleScraper: scrapers.DefaultArticleScraper,
-		})
 
 		log.Infof("Scraping %s", urlToScrape)
 		data, err := op.ScrapeArticleContent(op.ScrapeArticleContentInput{

@@ -49,6 +49,6 @@ type fakeScraper struct {
 	data *ScrapedArticleData
 }
 
-func (f *fakeScraper) Run([]byte, string) (*ScrapedArticleData, error) {
+func (f *fakeScraper) Run([]byte, string, string) (*ScrapedArticleData, error) {
 	return f.data, nil
 }
