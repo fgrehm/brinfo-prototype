@@ -13,7 +13,7 @@ import (
 	"github.com/dyatlov/go-htmlinfo/htmlinfo"
 	"github.com/dyatlov/go-oembed/oembed"
 	"github.com/dyatlov/go-opengraph/opengraph"
-	// log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var DefaultArticleScraper core.ArticleScraper
@@ -24,18 +24,19 @@ func init() {
 
 type defaultArticleScraper struct{}
 
-func (f *defaultArticleScraper) Run(articleHtml []byte, url string) (*core.ScrapedArticleData, error) {
+func (f *defaultArticleScraper) Run(articleHtml []byte, url, contentType string) (*core.ScrapedArticleData, error) {
 	info := htmlinfo.NewHTMLInfo()
-	if err := info.Parse(bytes.NewBuffer(articleHtml), &url, nil); err != nil {
+	log.Debug("Parsing HTML info")
+	if err := info.Parse(bytes.NewBuffer(articleHtml), &url, &contentType); err != nil {
 		return nil, err
 	}
+	log.Debug("HTML info parsed, generating oembed")
 	oembed := info.GenerateOembedFor(url)
 
 	data := &core.ScrapedArticleData{ContentType: "article"}
 
 	data.Extra = map[string]interface{}{
-		// TODO: Store full HTML
-		// "html": buf.String(),
+		"html": string(articleHtml),
 		"html_info": map[string]interface{}{
 			"data":             info,
 			"generated_oembed": oembed,
@@ -47,7 +48,6 @@ func (f *defaultArticleScraper) Run(articleHtml []byte, url string) (*core.Scrap
 	excerpt := cleanExcerpt(getExcerptFromHtmlInfo(info, oembed), title)
 	fullText := cleanFullText(info.MainContent, title, excerpt)
 
-	// { "__source__": { "html_info": ..., "oembed": ... }, title: "...", .... }
 	data.Title = title
 	data.Excerpt = excerpt
 	data.FullText = fullText
@@ -60,7 +60,7 @@ func (f *defaultArticleScraper) Run(articleHtml []byte, url string) (*core.Scrap
 		data.ModifiedAt = info.OGInfo.Article.ModifiedTime
 	}
 	data.Images = getOGImages(info.OGInfo.Images)
-	data.ImageUrl = getImageUrl(oembed.ThumbnailURL, data.Images)
+	data.ImageUrl = getImageUrl(oembed, data.Images)
 
 	// url = info.CanonicalUrl || url?
 	// images = info.Images
@@ -70,10 +70,6 @@ func (f *defaultArticleScraper) Run(articleHtml []byte, url string) (*core.Scrap
 	// updated_at =
 	// TODO: Ability to override some stuff, like for example the published at
 	// and all images from http://www.ba.gov.br/noticias/bahia-alcanca-segundo-lugar-no-ranking-nacional-de-testagens
-
-	// log.Warn("Truncating full content!!!")
-	// info.MainContent = info.MainContent[0:100]
-	// data.FullText = fullText[0:200]
 
 	return data, nil
 
@@ -119,7 +115,7 @@ func getSiteName(info *htmlinfo.HTMLInfo, oembed *oembed.Info) string {
 }
 
 func getTitleFromHtmlInfo(info *htmlinfo.HTMLInfo, oembed *oembed.Info) string {
-	if oembed.Title != "" {
+	if oembed != nil && oembed.Title != "" {
 		return oembed.Title
 	}
 	if info.Title != "" {
@@ -130,7 +126,7 @@ func getTitleFromHtmlInfo(info *htmlinfo.HTMLInfo, oembed *oembed.Info) string {
 }
 
 func getExcerptFromHtmlInfo(info *htmlinfo.HTMLInfo, oembed *oembed.Info) string {
-	if oembed.Description != "" {
+	if oembed != nil && oembed.Description != "" {
 		return oembed.Description
 	}
 	if info.Description != "" {
@@ -154,7 +150,7 @@ func getOGImages(images []*opengraph.Image) []*core.ScrapedArticleImage {
 	return imgs
 }
 
-func getImageUrl(oembedThumb string, imgs []*core.ScrapedArticleImage) string {
+func getImageUrl(oembed *oembed.Info, imgs []*core.ScrapedArticleImage) string {
 	for _, img := range imgs {
 		if img.Width != 0 && img.Height != 0 {
 			if img.SecureUrl != "" {
@@ -165,7 +161,10 @@ func getImageUrl(oembedThumb string, imgs []*core.ScrapedArticleImage) string {
 			}
 		}
 	}
-	return oembedThumb
+	if oembed != nil {
+		return oembed.ThumbnailURL
+	}
+	return ""
 }
 
 func cleanTitle(title, siteName string) string {

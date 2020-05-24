@@ -27,7 +27,7 @@ func InspectArticle(input InspectArticleInput) (*InspectedArticleData, error) {
 		return nil, err
 	}
 
-	body, err := makeRequest(url)
+	body, contentType, err := makeRequest(url)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func InspectArticle(input InspectArticleInput) (*InspectedArticleData, error) {
 		scraper = DefaultArticleScraper
 	}
 
-	data, err := scraper.Run(body, url)
+	data, err := scraper.Run(body, url, contentType)
 	if err != nil {
 		return nil, err
 	}

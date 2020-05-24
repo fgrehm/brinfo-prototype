@@ -38,12 +38,12 @@ func ScrapeArticleContent(input ScrapeArticleContentInput) (*ScrapedArticleData,
 		return nil, err
 	}
 
-	body, err := makeRequest(url)
+	body, contentType, err := makeRequest(url)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := cs.ArticleScraper.Run(body, url)
+	data, err := cs.ArticleScraper.Run(body, url, contentType)
 	if err != nil {
 		return nil, err
 	}

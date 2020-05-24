@@ -19,7 +19,7 @@ type ContentSourceRepo interface {
 
 type ArticleScraper interface {
 	// TODO: Add context argument
-	Run(articleHtml []byte, url string) (*ScrapedArticleData, error)
+	Run(articleHtml []byte, url, contentType string) (*ScrapedArticleData, error)
 }
 
 type ScrapedArticleData struct {
