@@ -2,18 +2,13 @@ package scrapers
 
 import (
 	"bytes"
-	"crypto/sha1"
-	"encoding/hex"
-	"strings"
 	"time"
 
 	"github.com/fgrehm/brinfo/core"
+	xt "github.com/fgrehm/brinfo/core/scrapers/extractors"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/dyatlov/go-htmlinfo/htmlinfo"
-	"github.com/dyatlov/go-oembed/oembed"
-	"github.com/dyatlov/go-opengraph/opengraph"
-	log "github.com/sirupsen/logrus"
+	"github.com/araddon/dateparse"
 )
 
 var DefaultArticleScraper core.ArticleScraper
@@ -25,164 +20,73 @@ func init() {
 type defaultArticleScraper struct{}
 
 func (f *defaultArticleScraper) Run(articleHtml []byte, url, contentType string) (*core.ScrapedArticleData, error) {
-	info := htmlinfo.NewHTMLInfo()
-	log.Debug("Parsing HTML info")
-	if err := info.Parse(bytes.NewBuffer(articleHtml), &url, &contentType); err != nil {
+	htmlinfo := &htmlInfoScraper{}
+	data, err := htmlinfo.Run(articleHtml, url, contentType)
+	if err != nil {
 		return nil, err
 	}
-	log.Debug("HTML info parsed, generating oembed")
-	oembed := info.GenerateOembedFor(url)
 
-	data := &core.ScrapedArticleData{ContentType: "article"}
-
-	data.Extra = map[string]interface{}{
-		"html": string(articleHtml),
-		"html_info": map[string]interface{}{
-			"data":             info,
-			"generated_oembed": oembed,
-		},
+	if data.PublishedAt == nil {
+		err = f.fallbackPublishedAtFromMeta(data, articleHtml)
+		// if err != nil {
+		// 	return nil, err
+		// }
 	}
-
-	siteName := getSiteName(info, oembed)
-	title := cleanTitle(getTitleFromHtmlInfo(info, oembed), siteName)
-	excerpt := cleanExcerpt(getExcerptFromHtmlInfo(info, oembed), title)
-	fullText := cleanFullText(info.MainContent, title, excerpt)
-
-	data.Title = title
-	data.Excerpt = excerpt
-	data.FullText = fullText
-	data.FullTextHash = generateHash(fullText)
-	data.FoundAt = time.Now()
-	data.Url = url
-	data.UrlHash = generateHash(url)
-	if info.OGInfo != nil && info.OGInfo.Article != nil {
-		data.PublishedAt = info.OGInfo.Article.PublishedTime
-		data.ModifiedAt = info.OGInfo.Article.ModifiedTime
-	}
-	data.Images = getOGImages(info.OGInfo.Images)
-	data.ImageUrl = getImageUrl(oembed, data.Images)
-
-	// url = info.CanonicalUrl || url?
-	// images = info.Images
-	// image_url = oembed.ThumbnailUrl || info.Images.First that does not have cover in the name of img, otherwise just return cover
-	// modified_at =
-	// published_at =
-	// updated_at =
-	// TODO: Ability to override some stuff, like for example the published at
-	// and all images from http://www.ba.gov.br/noticias/bahia-alcanca-segundo-lugar-no-ranking-nacional-de-testagens
 
 	return data, nil
-
-	// TODO: * Remove <html>, <head>, <body>, trim elements, etc
-	//       * Remove site_name from title
-	//       * Remove excerpt and title from content
-	//       * Give preference to images that don't have `cover` in the name
 }
 
-func generateHash(text string) string {
-	algorithm := sha1.New()
-	algorithm.Write([]byte(text))
-	return hex.EncodeToString(algorithm.Sum(nil))
-}
+func (s *defaultArticleScraper) fallbackPublishedAtFromMeta(data *core.ScrapedArticleData, articleHtml []byte) error {
+	// Lookup `article:publishedat`
+	extractor := xt.Structured("head", map[string]xt.Extractor{
+		"published_at": xt.Attribute(`meta[property="article:published_time"]`, "content"),
+		"modified_at":  xt.Attribute(`meta[property="article:modified_time"]`, "content"),
+	})
 
-func cleanFullText(html, title, excerpt string) string {
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(articleHtml))
+	if err != nil {
+		return err
+	}
+
+	extracted, err := extractor.Extract(doc.Selection)
+	if err != nil {
+		return err
+	}
+
+	extractedMap, ok := extracted.(map[string]xt.ExtractorResult)
+	if !ok {
+		panic("Extractor returned something weird")
+	}
+
+	brLoc, err := time.LoadLocation("America/Sao_Paulo")
 	if err != nil {
 		panic(err)
 	}
 
-	fullText := doc.Find("body").Text()
-	fullTextChunks := []string{}
-	for _, str := range strings.Split(fullText, "\n") {
-		str = strings.Trim(str, " ")
-		str = strings.Trim(str, "\t")
-		if str != "" && str != title && str != excerpt {
-			fullTextChunks = append(fullTextChunks, str)
-		}
+	publishedAt, err := s.parseDate(extractedMap["published_at"], brLoc)
+	if err != nil {
+		return err
 	}
-	fullText = strings.Join(fullTextChunks, "\n")
-	return fullText
+	data.PublishedAt = &publishedAt
+
+	modifiedAt, err := s.parseDate(extractedMap["modified_at"], brLoc)
+	if err != nil {
+		return err
+	}
+	data.ModifiedAt = &modifiedAt
+	// TODO: merge data
+
+	return nil
 }
 
-func getSiteName(info *htmlinfo.HTMLInfo, oembed *oembed.Info) string {
-	if info.OGInfo != nil && info.OGInfo.SiteName != "" {
-		return info.OGInfo.SiteName
+func (*defaultArticleScraper) parseDate(datetime xt.ExtractorResult, loc *time.Location) (time.Time, error) {
+	dateStr, ok := datetime.(string)
+	if !ok {
+		panic("Tried to parse something that is not a string")
 	}
-	if oembed != nil && oembed.ProviderName != "" {
-		return oembed.ProviderName
+	date, err := dateparse.ParseIn(dateStr, loc)
+	if err != nil {
+		return time.Time{}, err
 	}
-	return ""
-}
-
-func getTitleFromHtmlInfo(info *htmlinfo.HTMLInfo, oembed *oembed.Info) string {
-	if oembed != nil && oembed.Title != "" {
-		return oembed.Title
-	}
-	if info.Title != "" {
-		return info.Title
-	}
-
-	return ""
-}
-
-func getExcerptFromHtmlInfo(info *htmlinfo.HTMLInfo, oembed *oembed.Info) string {
-	if oembed != nil && oembed.Description != "" {
-		return oembed.Description
-	}
-	if info.Description != "" {
-		return info.Description
-	}
-
-	return ""
-}
-
-func getOGImages(images []*opengraph.Image) []*core.ScrapedArticleImage {
-	imgs := make([]*core.ScrapedArticleImage, len(images))
-	for i, img := range images {
-		imgs[i] = &core.ScrapedArticleImage{
-			Url:       img.URL,
-			SecureUrl: img.SecureURL,
-			Type:      img.Type,
-			Width:     img.Width,
-			Height:    img.Height,
-		}
-	}
-	return imgs
-}
-
-func getImageUrl(oembed *oembed.Info, imgs []*core.ScrapedArticleImage) string {
-	for _, img := range imgs {
-		if img.Width != 0 && img.Height != 0 {
-			if img.SecureUrl != "" {
-				return img.SecureUrl
-			}
-			if img.Url != "" {
-				return img.Url
-			}
-		}
-	}
-	if oembed != nil {
-		return oembed.ThumbnailURL
-	}
-	return ""
-}
-
-func cleanTitle(title, siteName string) string {
-	if title == "" || siteName == "" {
-		return ""
-	}
-
-	// Use a regex here if this list grows, if none of this fixes the problem with
-	// titles, use a generic regex
-	title = strings.TrimSuffix(title, " - "+siteName)
-	title = strings.TrimSuffix(title, " | "+siteName)
-	// TODO: Remove source name too (Like for http://www.ba.gov.br/noticias/bahia-alcanca-segundo-lugar-no-ranking-nacional-de-testagens)
-
-	return title
-}
-
-func cleanExcerpt(excerpt, title string) string {
-	// TODO: Remove timestamps, like the ones in
-	// http://www.amazonas.am.gov.br/2020/05/casa-do-migrante-jacamim-27-anos-acolhendo-pessoas-em-situacao-de-vulnerabilidade/
-	return strings.Trim(strings.TrimPrefix(excerpt, title), " ")
+	return date, nil
 }

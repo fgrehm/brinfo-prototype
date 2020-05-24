@@ -15,9 +15,9 @@ github.com/antchfx/xmlquery
 # github.com/antchfx/xpath v1.1.8
 ## explicit
 github.com/antchfx/xpath
-# github.com/dimchansky/utfbom v1.1.0
+# github.com/araddon/dateparse v0.0.0-20200409225146-d820a6159ab1
 ## explicit
-github.com/dimchansky/utfbom
+github.com/araddon/dateparse
 # github.com/dyatlov/go-htmlinfo v0.0.0-20180517114536-d9417c75de65
 ## explicit
 github.com/dyatlov/go-htmlinfo/htmlinfo
