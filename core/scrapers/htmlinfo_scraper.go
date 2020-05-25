@@ -53,6 +53,7 @@ func (i *htmlInfoScraper) Run(articleHtml []byte, url, contentType string) (*cor
 		data.PublishedAt = info.OGInfo.Article.PublishedTime
 		data.ModifiedAt = info.OGInfo.Article.ModifiedTime
 	}
+	// Move this logic up one layer
 	if data.ModifiedAt != nil && data.PublishedAt == nil {
 		data.PublishedAt = data.ModifiedAt
 	}

@@ -9,16 +9,29 @@ import (
 type textExtractor struct {
 	selector string
 	multiple bool
+	required bool
 }
 
 func Text(selector string, multiple bool) Extractor {
-	return &textExtractor{selector, multiple}
+	return &textExtractor{
+		selector: selector,
+		multiple: multiple,
+		required: true,
+	}
+}
+
+func OptText(selector string, multiple bool) Extractor {
+	return &textExtractor{
+		selector: selector,
+		multiple: multiple,
+		required: false,
+	}
 }
 
 func (e *textExtractor) Extract(root *goquery.Selection) (ExtractorResult, error) {
 	sel := root.Find(e.selector)
 
-	if sel.Length() == 0 {
+	if sel.Length() == 0 && e.required {
 		return nil, fmt.Errorf("'%s' not found", e.selector)
 	}
 
@@ -28,7 +41,15 @@ func (e *textExtractor) Extract(root *goquery.Selection) (ExtractorResult, error
 		}
 
 		if sel.Length() == 1 {
-			return sel.Text(), nil
+			text := sel.Text()
+			if text == "" {
+				if e.required {
+					return nil, fmt.Errorf("'%s' is empty", e.selector)
+				} else {
+					return nil, nil
+				}
+			}
+			return text, nil
 		}
 	}
 

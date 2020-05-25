@@ -31,5 +31,22 @@ var _ = Describe("Text", func() {
 		Expect(err).To(HaveOccurred())
 	})
 
-	// 	XIt("can be made optional with ExtractOptionalText", func() {
+	It("can be marked as optional", func() {
+		e := OptText("p", false)
+
+		val, err := e.Extract(Fragment(`<p>bla</p>`))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(val).To(Equal("bla"))
+
+		val, err = e.Extract(Fragment(`<div>a<div>`))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(val).To(BeNil())
+
+		val, err = e.Extract(Fragment(`<p></p>`))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(val).To(BeNil())
+
+		_, err = e.Extract(Fragment(`<p>a</p><p>b</p>`))
+		Expect(err).To(HaveOccurred())
+	})
 })

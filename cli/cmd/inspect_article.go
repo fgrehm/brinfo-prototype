@@ -27,11 +27,16 @@ var inspectArticle = &cobra.Command{
 			panic(err)
 		}
 
+		data.SourceID = "fake"
 		out, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println(string(out))
+
+		if !data.ValidForIngestion() {
+			log.Error("Won't be able to ingest article")
+		}
 		return nil
 	},
 }

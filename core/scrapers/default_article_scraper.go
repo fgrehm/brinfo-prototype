@@ -2,6 +2,7 @@ package scrapers
 
 import (
 	"bytes"
+	"regexp"
 	"time"
 
 	"github.com/fgrehm/brinfo/core"
@@ -27,28 +28,38 @@ func (f *defaultArticleScraper) Run(articleHtml []byte, url, contentType string)
 	}
 
 	if data.PublishedAt == nil {
-		err = f.fallbackPublishedAtFromMeta(data, articleHtml)
-		// if err != nil {
-		// 	return nil, err
-		// }
+		err = f.publishedAtFallbacks(data, articleHtml)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return data, nil
 }
 
-func (s *defaultArticleScraper) fallbackPublishedAtFromMeta(data *core.ScrapedArticleData, articleHtml []byte) error {
-	// Lookup `article:publishedat`
-	extractor := xt.Structured("head", map[string]xt.Extractor{
-		"published_at": xt.Attribute(`meta[property="article:published_time"]`, "content"),
-		"modified_at":  xt.Attribute(`meta[property="article:modified_time"]`, "content"),
-	})
-
+func (s *defaultArticleScraper) publishedAtFallbacks(data *core.ScrapedArticleData, articleHtml []byte) error {
 	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(articleHtml))
 	if err != nil {
 		return err
 	}
 
-	extracted, err := extractor.Extract(doc.Selection)
+	selection := doc.Selection
+
+	s.fallbackPublishedAtFromMeta(data, selection)
+	if data.PublishedAt == nil {
+		err = s.fallbackPublishedAtFromRDF(data, selection)
+	}
+
+	return err
+}
+
+func (s *defaultArticleScraper) fallbackPublishedAtFromMeta(data *core.ScrapedArticleData, root *goquery.Selection) error {
+	extractor := xt.Structured("head", map[string]xt.Extractor{
+		"published_at": xt.OptAttribute(`meta[property="article:published_time"]`, "content"),
+		"modified_at":  xt.OptAttribute(`meta[property="article:modified_time"]`, "content"),
+	})
+
+	extracted, err := extractor.Extract(root)
 	if err != nil {
 		return err
 	}
@@ -63,18 +74,71 @@ func (s *defaultArticleScraper) fallbackPublishedAtFromMeta(data *core.ScrapedAr
 		panic(err)
 	}
 
-	publishedAt, err := s.parseDate(extractedMap["published_at"], brLoc)
-	if err != nil {
-		return err
+	if extractedMap["published_at"] != nil {
+		publishedAt, err := s.parseDate(extractedMap["published_at"], brLoc)
+		if err != nil {
+			return err
+		}
+		data.PublishedAt = &publishedAt
 	}
-	data.PublishedAt = &publishedAt
 
-	modifiedAt, err := s.parseDate(extractedMap["modified_at"], brLoc)
+	if extractedMap["modified_at"] != nil {
+		modifiedAt, err := s.parseDate(extractedMap["modified_at"], brLoc)
+		if err != nil {
+			return err
+		}
+		data.ModifiedAt = &modifiedAt
+	}
+
+	return nil
+}
+
+var (
+	brDateTimeRegex = regexp.MustCompile(`^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}\s+[0-9]{1,2}h[0-9]{1,2}$`)
+	defaultTime = time.Time{}
+)
+
+func (s *defaultArticleScraper) fallbackPublishedAtFromRDF(data *core.ScrapedArticleData, root *goquery.Selection) error {
+	extractor := xt.Structured(`article[vocab*="schema.org"][typeof=Article][prefix*=rnews]`, map[string]xt.Extractor{
+		"published_at": xt.OptText(`[property="rnews:datePublished"]`, false),
+		"modified_at":  xt.OptText(`[property="rnews:dateModified"]`, false),
+	})
+
+	extracted, err := extractor.Extract(root)
 	if err != nil {
 		return err
 	}
-	data.ModifiedAt = &modifiedAt
-	// TODO: merge data
+
+	extractedMap, ok := extracted.(map[string]xt.ExtractorResult)
+	if !ok {
+		panic("Extractor returned something weird")
+	}
+
+	brLoc, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		panic(err)
+	}
+	time.Local = brLoc
+
+	if extractedMap["published_at"] != nil {
+		publishedAt, err := s.parseDate(extractedMap["published_at"], brLoc)
+		if err != nil {
+			return err
+		}
+		if publishedAt != defaultTime {
+			data.PublishedAt = &publishedAt
+		}
+	}
+
+	if extractedMap["modified_at"] != nil {
+		modifiedAt, err := s.parseDate(extractedMap["modified_at"], brLoc)
+		if err != nil {
+			return err
+		}
+		if modifiedAt != defaultTime {
+			data.ModifiedAt = &modifiedAt
+		}
+	}
 
 	return nil
 }
@@ -84,9 +148,24 @@ func (*defaultArticleScraper) parseDate(datetime xt.ExtractorResult, loc *time.L
 	if !ok {
 		panic("Tried to parse something that is not a string")
 	}
-	date, err := dateparse.ParseIn(dateStr, loc)
-	if err != nil {
-		return time.Time{}, err
+
+	var (
+		dt  time.Time
+		err error
+	)
+
+	if brDateTimeRegex.MatchString(dateStr) {
+		dt, err = time.ParseInLocation("_2/01/2006 15h04", dateStr, loc)
+		if err != nil {
+			return time.Time{}, err
+		}
 	}
-	return date, nil
+
+	if dt == defaultTime {
+		dt, err = dateparse.ParseIn(dateStr, loc)
+		if err != nil {
+			return time.Time{}, err
+		}
+	}
+	return dt, nil
 }

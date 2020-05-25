@@ -25,4 +25,14 @@ func init() {
 		Host:           "estado.rs.gov.br",
 		ArticleScraper: scrapers.DefaultArticleScraper,
 	})
+	repo.Register(&core.ContentSource{
+		ID:             "br-ses-rs",
+		Host:           "saude.rs.gov.br",
+		ArticleScraper: scrapers.DefaultArticleScraper,
+	})
+	repo.Register(&core.ContentSource{
+		ID:             "br-gov-pb",
+		Host:           "paraiba.pb.gov.br",
+		ArticleScraper: scrapers.DefaultArticleScraper,
+	})
 }

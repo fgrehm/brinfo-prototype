@@ -24,18 +24,23 @@ var _ = Describe("Attribute", func() {
 		_, err = e.Extract(Fragment(`<meta name="bla"><meta name="bla2">`))
 		Expect(err).To(HaveOccurred())
 	})
+
+	It("can be marked as optional", func() {
+		e := OptAttribute("meta", "name")
+
+		val, err := e.Extract(Fragment(`<meta name="bla">`))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(val).To(Equal("bla"))
+
+		val, err = e.Extract(Fragment(`<metas name="bla">`))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(val).To(BeNil())
+
+		val, err = e.Extract(Fragment(`<meta names="bla">`))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(val).To(BeNil())
+
+		_, err = e.Extract(Fragment(`<meta name="bla"><meta name="bla2">`))
+		Expect(err).To(HaveOccurred())
+	})
 })
-
-// 	It("can extract multiple attributes with ExtractMultipleAttributes", func() {
-// 		scraper := NewScraper().ExtractMultipleAttributes("meta", "meta[name*=og]", "content")
-
-// 		result, err := scraper.Run(`<meta name="og:a" content="a"><meta name="og:b" content="b">`)
-// 		Expect(err).NotTo(HaveOccurred())
-
-// 		val, err := result.Get("meta")
-// 		Expect(err).NotTo(HaveOccurred())
-// 		Expect(val).To(Equal([]string{"a", "b"}))
-// 	})
-
-// 	XIt("can be made optional with ExtractOptionalAttribute", func() {
-// 	})
