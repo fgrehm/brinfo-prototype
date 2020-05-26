@@ -22,12 +22,14 @@ var inspectArticle = &cobra.Command{
 		}
 
 		log.Infof("Inspecting %s", urlToInspect)
-		data, err := op.InspectArticle(op.InspectArticleInput{Url: urlToInspect.String()})
+		data, err := op.InspectArticle(op.InspectArticleInput{
+			Url: urlToInspect.String(),
+			ContentSourceRepo: repo,
+		})
 		if err != nil {
 			panic(err)
 		}
 
-		data.SourceID = "fake"
 		out, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
 			panic(err)

@@ -5,9 +5,10 @@ import (
 )
 
 type ContentSource struct {
-	ID             string
-	Host           string
-	ArticleScraper ArticleScraper
+	ID               string
+	Host             string
+	ArticleScraper   ArticleScraper
+	ForceContentType string
 }
 
 type ContentSourceRepo interface {

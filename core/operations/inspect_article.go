@@ -62,6 +62,9 @@ func validateInspectArticleInput(input InspectArticleInput) error {
 	if input.Url == "" {
 		return errors.New("No URL provided")
 	}
+	if input.ContentSourceRepo == nil {
+		return errors.New("No content source repo provided")
+	}
 
 	return nil
 }

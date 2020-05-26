@@ -29,8 +29,13 @@ func InspectBytes(input InspectBytesInput) (interface{}, error) {
 		return nil, err
 	}
 
+	contentType := "text/html; charset=UTF-8"
+	if cs != nil && cs.ForceContentType != "" {
+		contentType = cs.ForceContentType
+	}
+
 	scraper := fetchScraper(input, cs)
-	data, err := scraper.Run(input.Html, input.Url, `text/html; charset="UTF-8"`)
+	data, err := scraper.Run(input.Html, input.Url, contentType)
 	if err != nil {
 		return nil, err
 	}

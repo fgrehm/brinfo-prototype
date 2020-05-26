@@ -20,6 +20,10 @@ func doScrapeArticleContent(url string, cs *ContentSource, scraper ArticleScrape
 		return nil, err
 	}
 
+	if cs != nil && cs.ForceContentType != "" {
+		contentType = cs.ForceContentType
+	}
+
 	data, err := scraper.Run(body, url, contentType)
 	if err != nil {
 		return nil, err

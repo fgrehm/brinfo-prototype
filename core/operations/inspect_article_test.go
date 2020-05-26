@@ -3,6 +3,7 @@ package operations_test
 import (
 	. "github.com/fgrehm/brinfo/core"
 	. "github.com/fgrehm/brinfo/core/operations"
+	mem "github.com/fgrehm/brinfo/storage/inmemory"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -24,9 +25,15 @@ var _ = Describe("InspectArticle", func() {
 
 	Context("validations", func() {
 		It("fails if no url provided", func() {
-			_, err := InspectArticle(InspectArticleInput{Url: ""})
+			_, err := InspectArticle(InspectArticleInput{Url: "", ContentSourceRepo: mem.NewContentSourceRepo()})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(MatchRegexp("^No URL provided$"))
+		})
+
+		It("fails if no content repo provided", func() {
+			_, err := InspectArticle(InspectArticleInput{Url: "http://go.com"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(MatchRegexp("^No content source repo provided$"))
 		})
 	})
 
@@ -38,8 +45,9 @@ var _ = Describe("InspectArticle", func() {
 
 		It("gets delegated to the article scraper", func() {
 			data, err := InspectArticle(InspectArticleInput{
-				Url:            ts.URL + "/good",
-				ArticleScraper: scraper,
+				Url:               ts.URL + "/good",
+				ArticleScraper:    scraper,
+				ContentSourceRepo: mem.NewContentSourceRepo(),
 			})
 
 			Expect(err).NotTo(HaveOccurred())
@@ -48,8 +56,9 @@ var _ = Describe("InspectArticle", func() {
 
 		It("returns an error if http response is not 200", func() {
 			_, err := InspectArticle(InspectArticleInput{
-				Url:            ts.URL + "/bad",
-				ArticleScraper: scraper,
+				Url:               ts.URL + "/bad",
+				ArticleScraper:    scraper,
+				ContentSourceRepo: mem.NewContentSourceRepo(),
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(MatchRegexp("^Not Found$"))
