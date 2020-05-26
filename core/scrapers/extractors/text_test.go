@@ -9,7 +9,7 @@ import (
 
 var _ = Describe("Text", func() {
 	It("works as expected", func() {
-		val, err := Text("h1.title", false).Extract(Fragment(`<h1 class="title">foo</h1>`))
+		val, err := Text("h1.title", false).Extract(Fragment(`<h1 class="title">  foo  </h1>`))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(val).To(Equal("foo"))
 

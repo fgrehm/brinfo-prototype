@@ -2,6 +2,7 @@ package extractors
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -31,8 +32,12 @@ func OptText(selector string, multiple bool) Extractor {
 func (e *textExtractor) Extract(root *goquery.Selection) (ExtractorResult, error) {
 	sel := root.Find(e.selector)
 
-	if sel.Length() == 0 && e.required {
-		return nil, fmt.Errorf("'%s' not found", e.selector)
+	if sel.Length() == 0 {
+		if e.required {
+			return nil, fmt.Errorf("'%s' not found", e.selector)
+		} else {
+			return nil, nil
+		}
 	}
 
 	if !e.multiple {
@@ -49,13 +54,13 @@ func (e *textExtractor) Extract(root *goquery.Selection) (ExtractorResult, error
 					return nil, nil
 				}
 			}
-			return text, nil
+			return strings.Trim(text, " "), nil
 		}
 	}
 
 	var err error
 	ret := sel.Map(func(idx int, s *goquery.Selection) string {
-		return s.Text()
+		return strings.Trim(s.Text(), " ")
 	})
 
 	if err != nil {
