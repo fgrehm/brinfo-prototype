@@ -61,6 +61,14 @@ func (e *publishedDatesExtractor) extractWithFallbacks(root *goquery.Selection) 
 		return result, nil
 	}
 
+	result, err = e.extractFromArticleTime(root)
+	if err != nil {
+		return nil, err
+	}
+	if result != nil {
+		return result, nil
+	}
+
 	return nil, nil
 }
 
@@ -76,6 +84,14 @@ func (e *publishedDatesExtractor) extractFromRNews(root *goquery.Selection) (*ex
 	extractor := Structured(`body [vocab*="schema.org"][typeof=Article][prefix*=rnews]`, map[string]Extractor{
 		"published_at": OptText(`[property="rnews:datePublished"]`, false),
 		"modified_at":  OptText(`[property="rnews:dateModified"]`, false),
+	})
+
+	return e.handleExtractedResult(extractor.Extract(root))
+}
+
+func (e *publishedDatesExtractor) extractFromArticleTime(root *goquery.Selection) (*extractedDates, error) {
+	extractor := Structured(`article`, map[string]Extractor{
+		"published_at": OptAttribute(`time[pubdate]`, "datetime"),
 	})
 
 	return e.handleExtractedResult(extractor.Extract(root))

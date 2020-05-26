@@ -53,6 +53,40 @@ var _ = Describe("PublishedDates", func() {
 			Expect(val).To(BeNil())
 		})
 	})
+
+	Context("article time", func() {
+		It("extracts published_at from <article><time> with pubdate", func() {
+			e := PublishedDates()
+
+			val, err := e.Extract(Fragment(`<article>
+				<time pubdate="" datetime="2010-02-21 15:50:00 -0300">foobar</time></article>`))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(val).NotTo(BeNil())
+
+			data, ok := val.(map[string]*time.Time)
+			if !ok {
+				panic("Returned something weird")
+			}
+			Expect(data["published_at"]).NotTo(BeNil())
+			Expect(*data["published_at"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
+			Expect(data["modified_at"]).To(BeNil())
+		})
+
+		It("is restricted to elements with proper attrs", func() {
+			e := PublishedDates()
+
+			val, err := e.Extract(Fragment(`<article>
+				<time pubdates="" datetime="2010-02-21 15:50:00 -0300">foobar</time></article>`))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(val).To(BeNil())
+
+			val, err = e.Extract(Fragment(`<article>
+				<time pubdate="" datetimes="2010-02-21 15:50:00 -0300">foobar</time></article>`))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(val).To(BeNil())
+		})
+	})
+
 	Context("rnews", func() {
 		It("extracts published_at from rnews:datePublished", func() {
 			e := PublishedDates()
