@@ -56,3 +56,11 @@ func (r *contentSourceRepo) FindByHost(host string) (*ContentSource, error) {
 
 	return cs, nil
 }
+
+func (r *contentSourceRepo) GetByHost(host string) (*ContentSource, error) {
+	cs, ok := r.sourcesByHost[host]
+	if !ok {
+		return nil, nil
+	}
+	return cs, nil
+}

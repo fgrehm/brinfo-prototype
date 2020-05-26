@@ -14,7 +14,8 @@ type ContentSourceRepo interface {
 	// TODO: Add context argument
 	Register(cs *ContentSource) error
 	FindByID(id string) (*ContentSource, error)
-	FindByHost(id string) (*ContentSource, error)
+	GetByHost(host string) (*ContentSource, error)
+	FindByHost(host string) (*ContentSource, error)
 }
 
 type ArticleScraper interface {

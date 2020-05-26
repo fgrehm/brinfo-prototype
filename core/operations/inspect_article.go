@@ -8,8 +8,9 @@ import (
 )
 
 type InspectArticleInput struct {
-	Url            string
-	ArticleScraper ArticleScraper
+	ContentSourceRepo ContentSourceRepo
+	Url               string
+	ArticleScraper    ArticleScraper
 }
 
 type InspectedArticleData struct {
@@ -18,8 +19,10 @@ type InspectedArticleData struct {
 
 func InspectArticle(input InspectArticleInput) (*InspectedArticleData, error) {
 	var (
-		url = input.Url
+		url     = input.Url
+		scraper = input.ArticleScraper
 
+		cs  *ContentSource
 		err error
 	)
 
@@ -27,18 +30,27 @@ func InspectArticle(input InspectArticleInput) (*InspectedArticleData, error) {
 		return nil, err
 	}
 
-	body, contentType, err := makeRequest(url)
-	if err != nil {
-		return nil, err
+	if input.ContentSourceRepo != nil {
+		cs, err = lookupContentSourceForUrl(input.ContentSourceRepo, input.Url)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	scraper := input.ArticleScraper
+	if cs != nil {
+		if err = validateContentSourceForScraping(cs, url); err != nil {
+			return nil, err
+		}
+	}
+
+	if scraper == nil && cs != nil {
+		scraper = cs.ArticleScraper
+	}
 	if scraper == nil {
-		// scraper = CombinedScraper(DefaultArticleScraper, ...)
 		scraper = DefaultArticleScraper
 	}
 
-	data, err := scraper.Run(body, url, contentType)
+	data, err := doScrapeArticleContent(url, cs, scraper)
 	if err != nil {
 		return nil, err
 	}

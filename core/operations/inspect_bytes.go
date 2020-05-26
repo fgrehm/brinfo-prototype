@@ -8,9 +8,12 @@ import (
 )
 
 type InspectBytesInput struct {
-	Html           []byte
-	ArticleScraper ArticleScraper
-	Url            string
+	Html              []byte
+	ContentSourceRepo ContentSourceRepo
+	ContentSource     *ContentSource
+	ArticleScraper    ArticleScraper
+	Url               string
+	ContentType       *string
 }
 
 func InspectBytes(input InspectBytesInput) (interface{}, error) {
@@ -21,16 +24,40 @@ func InspectBytes(input InspectBytesInput) (interface{}, error) {
 		return nil, errors.New("No Url provided")
 	}
 
-	scraper := input.ArticleScraper
-	if scraper == nil {
-		// scraper = CombinedScraper(DefaultArticleScraper, ...)
-		scraper = DefaultArticleScraper
+	cs, err := fetchContentSource(input)
+	if err != nil {
+		return nil, err
 	}
 
+	scraper := fetchScraper(input, cs)
 	data, err := scraper.Run(input.Html, input.Url, `text/html; charset="UTF-8"`)
 	if err != nil {
 		return nil, err
 	}
 
 	return data, nil
+}
+
+func fetchContentSource(input InspectBytesInput) (*ContentSource, error) {
+	if input.ContentSource != nil {
+		return input.ContentSource, nil
+	}
+
+	if input.ContentSourceRepo != nil {
+		return lookupContentSourceForUrl(input.ContentSourceRepo, input.Url)
+	}
+
+	return nil, nil
+}
+
+func fetchScraper(input InspectBytesInput, cs *ContentSource) ArticleScraper {
+	if input.ArticleScraper != nil {
+		return input.ArticleScraper
+	}
+
+	if cs != nil && cs.ArticleScraper != nil {
+		return cs.ArticleScraper
+	}
+
+	return DefaultArticleScraper
 }
