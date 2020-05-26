@@ -36,6 +36,11 @@ func (f *defaultArticleScraper) Run(articleHtml []byte, url, contentType string)
 }
 
 func (s *defaultArticleScraper) publishedAtFallbacks(data *core.ScrapedArticleData, articleHtml []byte) error {
+	if data.PublishedAt == nil && data.ModifiedAt != nil {
+		data.PublishedAt = data.ModifiedAt
+		return nil
+	}
+
 	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(articleHtml))
 	if err != nil {
 		return err
@@ -61,6 +66,7 @@ func (s *defaultArticleScraper) publishedAtFallbacks(data *core.ScrapedArticleDa
 			data.PublishedAt = modifiedAt
 		}
 	}
+	// TODO: Annotate with the source of the date here
 
 	return err
 }
