@@ -11,7 +11,7 @@ var _ = Describe("Attribute", func() {
 	It("works", func() {
 		e := Attribute("meta", "name")
 
-		val, err := e.Extract(Fragment(`<meta name="bla">`))
+		val, err := e.Extract(Fragment(`<meta name="  bla  ">`))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(val).To(Equal("bla"))
 

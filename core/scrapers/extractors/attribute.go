@@ -2,6 +2,7 @@ package extractors
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -55,7 +56,7 @@ func (e *attrExtractor) Extract(root *goquery.Selection) (ExtractorResult, error
 			if attr == "" {
 				return nil, nil
 			}
-			return attr, nil
+			return strings.Trim(attr, " "), nil
 		}
 	}
 	if sel.Length() > 1 && !e.multiple {
@@ -71,7 +72,7 @@ func (e *attrExtractor) Extract(root *goquery.Selection) (ExtractorResult, error
 				return ""
 			}
 		}
-		return attr
+		return strings.Trim(attr, " ")
 	})
 
 	if err != nil {
