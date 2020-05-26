@@ -91,9 +91,20 @@ func (e *publishedDatesExtractor) extractFromRNews(root *goquery.Selection) (*ex
 
 func (e *publishedDatesExtractor) extractFromArticleTime(root *goquery.Selection) (*extractedDates, error) {
 	extractor := Structured(`article`, map[string]Extractor{
-		"published_at": OptAttribute(`time[pubdate]`, "datetime"),
+		"published_at": OptAttribute(`time`, "pubdate"),
 	})
 
+	dates, err := e.handleExtractedResult(extractor.Extract(root))
+	if err != nil {
+		return nil, err
+	}
+	if dates != nil {
+		return dates, nil
+	}
+
+	extractor = Structured(`article`, map[string]Extractor{
+		"published_at": OptAttribute(`time[pubdate]`, "datetime"),
+	})
 	return e.handleExtractedResult(extractor.Extract(root))
 }
 
