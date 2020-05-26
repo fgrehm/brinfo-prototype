@@ -40,7 +40,7 @@ func (e *publishedDatesExtractor) Extract(root *goquery.Selection) (ExtractorRes
 
 	return map[string]*time.Time{
 		"published_at": result.publishedAt,
-		"modified_at": result.modifiedAt,
+		"modified_at":  result.modifiedAt,
 	}, nil
 }
 
