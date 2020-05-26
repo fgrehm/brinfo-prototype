@@ -35,4 +35,20 @@ func init() {
 		Host:           "paraiba.pb.gov.br",
 		ArticleScraper: scrapers.DefaultArticleScraper,
 	})
+	repo.Register(&core.ContentSource{
+		ID:             "br-gov-pr",
+		Host:           "www.aen.pr.gov.br",
+		ArticleScraper: scrapers.DefaultArticleScraper,
+	})
+	repo.Register(&core.ContentSource{
+		ID:             "br-gov-mg",
+		Host:           "www.agenciaminas.mg.gov.br",
+		ArticleScraper: scrapers.DefaultArticleScraper,
+	})
+	repo.Register(&core.ContentSource{
+		ID:               "br-gov-pe",
+		Host:             "www.pe.gov.br",
+		ForceContentType: `text/html; charset="UTF-8"`,
+		ArticleScraper:   scrapers.DefaultArticleScraper,
+	})
 }

@@ -23,7 +23,7 @@ var inspectArticle = &cobra.Command{
 
 		log.Infof("Inspecting %s", urlToInspect)
 		data, err := op.InspectArticle(op.InspectArticleInput{
-			Url: urlToInspect.String(),
+			Url:               urlToInspect.String(),
 			ContentSourceRepo: repo,
 		})
 		if err != nil {
