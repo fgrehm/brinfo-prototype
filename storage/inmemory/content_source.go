@@ -1,6 +1,7 @@
 package inmemory
 
 import (
+	"context"
 	"fmt"
 
 	. "github.com/fgrehm/brinfo/core"
@@ -39,7 +40,7 @@ func (r *contentSourceRepo) Register(cs *ContentSource) error {
 	return nil
 }
 
-func (r *contentSourceRepo) FindByID(id string) (*ContentSource, error) {
+func (r *contentSourceRepo) FindByID(ctx context.Context, id string) (*ContentSource, error) {
 	cs, ok := r.sourcesByID[id]
 	if !ok {
 		return nil, fmt.Errorf("Content source not found: %s", id)
@@ -48,7 +49,7 @@ func (r *contentSourceRepo) FindByID(id string) (*ContentSource, error) {
 	return cs, nil
 }
 
-func (r *contentSourceRepo) FindByHost(host string) (*ContentSource, error) {
+func (r *contentSourceRepo) FindByHost(ctx context.Context, host string) (*ContentSource, error) {
 	cs, ok := r.sourcesByHost[host]
 	if !ok {
 		return nil, fmt.Errorf("Content source not found: %s", host)
@@ -57,7 +58,7 @@ func (r *contentSourceRepo) FindByHost(host string) (*ContentSource, error) {
 	return cs, nil
 }
 
-func (r *contentSourceRepo) GetByHost(host string) (*ContentSource, error) {
+func (r *contentSourceRepo) GetByHost(ctx context.Context, host string) (*ContentSource, error) {
 	cs, ok := r.sourcesByHost[host]
 	if !ok {
 		return nil, nil

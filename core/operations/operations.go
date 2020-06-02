@@ -1,30 +1,37 @@
 package operations
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	neturl "net/url"
 	"time"
 
 	. "github.com/fgrehm/brinfo/core"
 
+	"github.com/apex/log"
 	"github.com/gocolly/colly/v2"
-	log "github.com/sirupsen/logrus"
 )
 
 var UseCache = true
 
-func doScrapeArticleContent(url string, cs *ContentSource, scraper ArticleScraper) (*ScrapedArticleData, error) {
+func loggerFromContext(ctx context.Context) log.Interface {
+	return log.FromContext(ctx)
+}
+
+func doScrapeArticle(ctx context.Context, url string, cs *ContentSource, scraper ArticleScraper) (*ScrapedArticleData, error) {
+	log := loggerFromContext(ctx)
+
 	body, contentType, err := makeRequest(url)
 	if err != nil {
 		return nil, err
 	}
 
 	if cs != nil && cs.ForceContentType != "" {
+		log.Debugf("Forcing content type to %s", cs.ForceContentType)
 		contentType = cs.ForceContentType
 	}
 
-	data, err := scraper.Run(body, url, contentType)
+	data, err := scraper.Run(ctx, body, url, contentType)
 	if err != nil {
 		return nil, err
 	}
@@ -32,17 +39,6 @@ func doScrapeArticleContent(url string, cs *ContentSource, scraper ArticleScrape
 		data.SourceID = cs.ID
 	}
 	return data, nil
-}
-
-func validateScrapeArticleContentInput(input ScrapeArticleContentInput) error {
-	if input.Url == "" {
-		return errors.New("No URL provided")
-	}
-	if input.ContentSource == nil && input.Repo == nil {
-		return errors.New("No ContentSource or Repository provided")
-	}
-
-	return nil
 }
 
 func validateContentSourceForScraping(cs *ContentSource, url string) error {
@@ -103,20 +99,20 @@ func makeRequest(url string) ([]byte, string, error) {
 	return body, contentType, nil
 }
 
-func mustLookupContentSourceForUrl(repo ContentSourceRepo, url string) (*ContentSource, error) {
+func mustLookupContentSourceForUrl(ctx context.Context, repo ContentSourceRepo, url string) (*ContentSource, error) {
 	host, err := extractHost(url)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return repo.FindByHost(host)
+	return repo.FindByHost(ctx, host)
 }
 
-func lookupContentSourceForUrl(repo ContentSourceRepo, url string) (*ContentSource, error) {
+func lookupContentSourceForUrl(ctx context.Context, repo ContentSourceRepo, url string) (*ContentSource, error) {
 	host, err := extractHost(url)
 	if err != nil {
 		return nil, err
 	}
-	return repo.GetByHost(host)
+	return repo.GetByHost(ctx, host)
 }
 
 func extractHost(url string) (string, error) {

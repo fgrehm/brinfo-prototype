@@ -7,7 +7,7 @@ import (
 
 	op "github.com/fgrehm/brinfo/core/operations"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/apex/log"
 	"github.com/spf13/cobra"
 )
 
@@ -16,16 +16,15 @@ var inspectFile = &cobra.Command{
 	Short: "Inspect an HTML page saved locally using the default scraper",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.SetLevel(log.DebugLevel)
+		logger := log.FromContext(cmd.Context())
 
-		log.Infof("Reading %s", args[0])
+		logger.Infof("Reading %s", args[0])
 		fileContents, err := ioutil.ReadFile(args[0])
 		if err != nil {
 			return err
 		}
 
-		log.Debug("Inspecting")
-		data, err := op.InspectBytes(op.InspectBytesInput{
+		data, err := op.InspectBytes(cmd.Context(), op.InspectBytesInput{
 			Html: fileContents,
 			Url:  args[1],
 		})

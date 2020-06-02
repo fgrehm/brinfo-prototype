@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -172,7 +173,7 @@ var _ = Describe("Core", func() {
 
 			scraper := CombinedArticleScraper(firstScraper, lastScraper)
 
-			data, err := scraper.Run([]byte{}, "", "")
+			data, err := scraper.Run(context.Background(), []byte{}, "", "")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(data).To(Equal(&ScrapedArticleData{
 				Extra: map[string]interface{}{
@@ -206,7 +207,7 @@ var _ = Describe("Core", func() {
 
 			scraper := CombinedArticleScraper(firstScraper, &fakeScraper{&ScrapedArticleData{}, nil}, bestScraper, &fakeScraper{&ScrapedArticleData{}, nil})
 
-			data, err := scraper.Run([]byte{}, "", "")
+			data, err := scraper.Run(context.Background(), []byte{}, "", "")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(data).To(Equal(&ScrapedArticleData{
 				Extra: map[string]interface{}{
@@ -239,7 +240,7 @@ var _ = Describe("Core", func() {
 
 			scraper := CombinedArticleScraper(firstScraper, errScraper, bestScraper, &fakeScraper{&ScrapedArticleData{}, nil})
 
-			data, err := scraper.Run([]byte{}, "", "")
+			data, err := scraper.Run(context.Background(), []byte{}, "", "")
 			Expect(err).To(HaveOccurred())
 			Expect(data).To(BeNil())
 		})
@@ -251,6 +252,6 @@ type fakeScraper struct {
 	err    error
 }
 
-func (s *fakeScraper) Run([]byte, string, string) (*ScrapedArticleData, error) {
+func (s *fakeScraper) Run(context.Context, []byte, string, string) (*ScrapedArticleData, error) {
 	return s.result, s.err
 }

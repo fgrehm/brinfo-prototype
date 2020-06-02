@@ -5,6 +5,8 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 
+	"github.com/apex/log"
+	"github.com/apex/log/handlers/cli"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
@@ -18,6 +20,8 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
+	log.SetHandler(cli.Default)
+	log.SetLevel(log.DebugLevel)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -26,7 +30,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cli.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.brinfo.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -42,9 +46,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".cli" (without extension).
+		// Search config in home directory with name ".brinfo" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".cli")
+		viper.SetConfigName(".brinfo")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

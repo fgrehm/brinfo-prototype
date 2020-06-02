@@ -2,6 +2,7 @@ package scrapers
 
 import (
 	"bytes"
+	"context"
 	"time"
 
 	"github.com/fgrehm/brinfo/core"
@@ -18,9 +19,9 @@ func init() {
 
 type defaultArticleScraper struct{}
 
-func (f *defaultArticleScraper) Run(articleHtml []byte, url, contentType string) (*core.ScrapedArticleData, error) {
+func (f *defaultArticleScraper) Run(ctx context.Context, articleHtml []byte, url, contentType string) (*core.ScrapedArticleData, error) {
 	htmlinfo := &htmlInfoScraper{}
-	data, err := htmlinfo.Run(articleHtml, url, contentType)
+	data, err := htmlinfo.Run(ctx, articleHtml, url, contentType)
 	if err != nil {
 		return nil, err
 	}

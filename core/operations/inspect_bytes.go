@@ -1,6 +1,7 @@
 package operations
 
 import (
+	"context"
 	"errors"
 
 	. "github.com/fgrehm/brinfo/core"
@@ -16,7 +17,7 @@ type InspectBytesInput struct {
 	ContentType       *string
 }
 
-func InspectBytes(input InspectBytesInput) (interface{}, error) {
+func InspectBytes(ctx context.Context, input InspectBytesInput) (interface{}, error) {
 	if len(input.Html) == 0 {
 		return nil, errors.New("No HTML provided")
 	}
@@ -24,7 +25,7 @@ func InspectBytes(input InspectBytesInput) (interface{}, error) {
 		return nil, errors.New("No Url provided")
 	}
 
-	cs, err := fetchContentSource(input)
+	cs, err := fetchContentSource(ctx, input)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +36,7 @@ func InspectBytes(input InspectBytesInput) (interface{}, error) {
 	}
 
 	scraper := fetchScraper(input, cs)
-	data, err := scraper.Run(input.Html, input.Url, contentType)
+	data, err := scraper.Run(ctx, input.Html, input.Url, contentType)
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +44,13 @@ func InspectBytes(input InspectBytesInput) (interface{}, error) {
 	return data, nil
 }
 
-func fetchContentSource(input InspectBytesInput) (*ContentSource, error) {
+func fetchContentSource(ctx context.Context, input InspectBytesInput) (*ContentSource, error) {
 	if input.ContentSource != nil {
 		return input.ContentSource, nil
 	}
 
 	if input.ContentSourceRepo != nil {
-		return lookupContentSourceForUrl(input.ContentSourceRepo, input.Url)
+		return lookupContentSourceForUrl(ctx, input.ContentSourceRepo, input.Url)
 	}
 
 	return nil, nil

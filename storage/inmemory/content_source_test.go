@@ -1,6 +1,8 @@
 package inmemory_test
 
 import (
+	"context"
+
 	. "github.com/fgrehm/brinfo/core"
 	mem "github.com/fgrehm/brinfo/storage/inmemory"
 
@@ -10,6 +12,7 @@ import (
 
 var _ = Describe("ContentSource", func() {
 	It("maintains a registry of content sources", func() {
+		ctx := context.Background()
 		r := mem.NewContentSourceRepo()
 
 		cs := &ContentSource{ID: "br-foo", Host: "example.com"}
@@ -21,19 +24,19 @@ var _ = Describe("ContentSource", func() {
 		Expect(err).To(HaveOccurred())
 
 		// Lookup by guid
-		cs, err = r.FindByID(cs.ID)
+		cs, err = r.FindByID(ctx, cs.ID)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cs).To(Equal(cs))
 
-		_, err = r.FindByID("NO")
+		_, err = r.FindByID(ctx, "NO")
 		Expect(err).To(HaveOccurred())
 
 		// Lookup by host
-		cs, err = r.FindByHost(cs.Host)
+		cs, err = r.FindByHost(ctx, cs.Host)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cs).To(Equal(cs))
 
-		_, err = r.FindByHost("NO")
+		_, err = r.FindByHost(ctx, "NO")
 		Expect(err).To(HaveOccurred())
 	})
 })

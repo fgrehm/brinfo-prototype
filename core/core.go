@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"time"
 )
 
@@ -12,16 +13,14 @@ type ContentSource struct {
 }
 
 type ContentSourceRepo interface {
-	// TODO: Add context argument
 	Register(cs *ContentSource) error
-	FindByID(id string) (*ContentSource, error)
-	GetByHost(host string) (*ContentSource, error)
-	FindByHost(host string) (*ContentSource, error)
+	FindByID(ctx context.Context, id string) (*ContentSource, error)
+	GetByHost(ctx context.Context, host string) (*ContentSource, error)
+	FindByHost(ctx context.Context, host string) (*ContentSource, error)
 }
 
 type ArticleScraper interface {
-	// TODO: Add context argument
-	Run(articleHtml []byte, url, contentType string) (*ScrapedArticleData, error)
+	Run(ctx context.Context, articleHtml []byte, url, contentType string) (*ScrapedArticleData, error)
 }
 
 type combinedArticleScraper struct {
@@ -35,10 +34,10 @@ func CombinedArticleScraper(scrapers ...ArticleScraper) ArticleScraper {
 	return &combinedArticleScraper{scrapers}
 }
 
-func (s *combinedArticleScraper) Run(articleHtml []byte, url, contentType string) (*ScrapedArticleData, error) {
+func (s *combinedArticleScraper) Run(ctx context.Context, articleHtml []byte, url, contentType string) (*ScrapedArticleData, error) {
 	data := &ScrapedArticleData{}
 	for _, scraper := range s.scrapers {
-		newData, err := scraper.Run(articleHtml, url, contentType)
+		newData, err := scraper.Run(ctx, articleHtml, url, contentType)
 		if err != nil {
 			return nil, err
 		}

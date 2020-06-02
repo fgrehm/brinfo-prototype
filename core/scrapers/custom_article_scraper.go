@@ -2,6 +2,7 @@ package scrapers
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/url"
 	"time"
@@ -26,7 +27,7 @@ func CustomArticleScraper(cfg CustomArticleScraperConfig) core.ArticleScraper {
 	return &customArticleScraper{cfg}
 }
 
-func (s *customArticleScraper) Run(articleHtml []byte, url, contentType string) (*core.ScrapedArticleData, error) {
+func (s *customArticleScraper) Run(ctx context.Context, articleHtml []byte, url, contentType string) (*core.ScrapedArticleData, error) {
 	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(articleHtml))
 	if err != nil {
 		return nil, err

@@ -1,6 +1,7 @@
 package operations
 
 import (
+	"context"
 	"errors"
 
 	. "github.com/fgrehm/brinfo/core"
@@ -17,7 +18,7 @@ type InspectedArticleData struct {
 	*ScrapedArticleData
 }
 
-func InspectArticle(input InspectArticleInput) (*InspectedArticleData, error) {
+func InspectArticle(ctx context.Context, input InspectArticleInput) (*InspectedArticleData, error) {
 	var (
 		url     = input.Url
 		scraper = input.ArticleScraper
@@ -30,8 +31,10 @@ func InspectArticle(input InspectArticleInput) (*InspectedArticleData, error) {
 		return nil, err
 	}
 
+	log := loggerFromContext(ctx)
 	if input.ContentSourceRepo != nil {
-		cs, err = lookupContentSourceForUrl(input.ContentSourceRepo, input.Url)
+		log.Debugf("Looking up content source for %s", input.Url)
+		cs, err = lookupContentSourceForUrl(ctx, input.ContentSourceRepo, input.Url)
 		if err != nil {
 			return nil, err
 		}
@@ -44,13 +47,15 @@ func InspectArticle(input InspectArticleInput) (*InspectedArticleData, error) {
 	}
 
 	if scraper == nil && cs != nil {
+		log.Debugf("Using custom scraper for %s", cs.ID)
 		scraper = cs.ArticleScraper
 	}
 	if scraper == nil {
+		log.Debug("Using default article scraper")
 		scraper = DefaultArticleScraper
 	}
 
-	data, err := doScrapeArticleContent(url, cs, scraper)
+	data, err := doScrapeArticle(ctx, url, cs, scraper)
 	if err != nil {
 		return nil, err
 	}

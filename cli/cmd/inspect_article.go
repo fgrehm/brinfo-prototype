@@ -7,7 +7,7 @@ import (
 
 	op "github.com/fgrehm/brinfo/core/operations"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/apex/log"
 	"github.com/spf13/cobra"
 )
 
@@ -21,8 +21,9 @@ var inspectArticle = &cobra.Command{
 			return err
 		}
 
-		log.Infof("Inspecting %s", urlToInspect)
-		data, err := op.InspectArticle(op.InspectArticleInput{
+		logger := log.FromContext(cmd.Context())
+		logger.Infof("Inspecting %s", urlToInspect)
+		data, err := op.InspectArticle(cmd.Context(), op.InspectArticleInput{
 			Url:               urlToInspect.String(),
 			ContentSourceRepo: repo,
 		})
@@ -37,7 +38,8 @@ var inspectArticle = &cobra.Command{
 		fmt.Println(string(out))
 
 		if !data.ValidForIngestion() {
-			log.Error("Won't be able to ingest article")
+			logger.Error("Won't be able to ingest article")
+			panic("aborting")
 		}
 		return nil
 	},

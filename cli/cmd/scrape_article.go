@@ -10,7 +10,7 @@ import (
 	"github.com/fgrehm/brinfo/core"
 	op "github.com/fgrehm/brinfo/core/operations"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/apex/log"
 	"github.com/spf13/cobra"
 )
 
@@ -19,27 +19,29 @@ var scrapeCmd = &cobra.Command{
 	Short: "Scrape contents of articles from well known sources",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logger := log.FromContext(cmd.Context())
+
 		urlToScrape, err := url.ParseRequestURI(args[0])
 		if err != nil {
 			return err
 		}
 
 		log.Infof("Scraping %s", urlToScrape)
-		data, err := op.ScrapeArticleContent(op.ScrapeArticleContentInput{
+		data, err := op.ScrapeArticle(cmd.Context(), op.ScrapeArticleInput{
 			Url:  urlToScrape.String(),
 			Repo: repo,
 		})
 		if err != nil {
-			log.Fatal(err)
+			logger.Fatal(err.Error())
 		}
 		if !data.ValidForIngestion() {
-			log.Fatal("Data is invalid for ingestion")
+			logger.Fatal("Data is invalid for ingestion")
 		}
 
 		payload := &ArticleDataToUpload{data, fmt.Sprintf("%s/article-%s.json", data.SourceID, data.UrlHash)}
 		jsonData, err := json.MarshalIndent(payload, "", "  ")
 		if err != nil {
-			log.Fatal(err)
+			logger.Fatal(err.Error())
 		}
 
 		outputDir := fmt.Sprintf("./output/%s", data.SourceID)
@@ -48,7 +50,7 @@ var scrapeCmd = &cobra.Command{
 		outputPath := fmt.Sprintf("%s/article-%s.json", outputDir, data.UrlHash)
 		log.Infof("Saving to %s", outputPath)
 		if err = ioutil.WriteFile(outputPath, jsonData, 0644); err != nil {
-			log.Fatal(err)
+			logger.Fatal(err.Error())
 		}
 
 		// fmt.Println(string(out))

@@ -2,6 +2,7 @@ package scrapers
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"encoding/hex"
 	"strings"
@@ -10,21 +11,23 @@ import (
 	"github.com/fgrehm/brinfo/core"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/apex/log"
 	"github.com/dyatlov/go-htmlinfo/htmlinfo"
 	"github.com/dyatlov/go-oembed/oembed"
 	"github.com/dyatlov/go-opengraph/opengraph"
-	log "github.com/sirupsen/logrus"
 )
 
 type htmlInfoScraper struct{}
 
-func (i *htmlInfoScraper) Run(articleHtml []byte, url, contentType string) (*core.ScrapedArticleData, error) {
+func (i *htmlInfoScraper) Run(ctx context.Context, articleHtml []byte, url, contentType string) (*core.ScrapedArticleData, error) {
+	logger := log.FromContext(ctx)
+
 	info := htmlinfo.NewHTMLInfo()
-	log.Debug("Parsing HTML info")
+	logger.Debug("Parsing HTML info")
 	if err := info.Parse(bytes.NewBuffer(articleHtml), &url, &contentType); err != nil {
 		return nil, err
 	}
-	log.Debug("HTML info parsed, generating oembed")
+	logger.Debug("HTML info parsed, generating oembed")
 	oembed := info.GenerateOembedFor(url)
 
 	data := &core.ScrapedArticleData{ContentType: "article"}
