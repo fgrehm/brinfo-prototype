@@ -124,14 +124,20 @@ func getTitleFromHtmlInfo(info *htmlinfo.HTMLInfo, oembed *oembed.Info) string {
 }
 
 func getExcerptFromHtmlInfo(info *htmlinfo.HTMLInfo, oembed *oembed.Info) string {
+	var excerpt string
 	if oembed != nil && oembed.Description != "" {
-		return oembed.Description
+		excerpt = oembed.Description
 	}
 	if info.Description != "" {
-		return info.Description
+		excerpt = info.Description
 	}
 
-	return ""
+	// http://www.aen.pr.gov.br/modules/noticias/article.php?storyid=106347&tit=Estado-destina-R-24-milhoes-para-indigenas-e-quilombolas
+	if excerpt == "Saiba mais..." {
+		return ""
+	}
+
+	return excerpt
 }
 
 func getOGImages(images []*opengraph.Image) []*core.ScrapedArticleImage {

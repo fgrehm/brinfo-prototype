@@ -3,6 +3,7 @@ package scrapers
 import (
 	"bytes"
 	"errors"
+	"net/url"
 	"time"
 
 	"github.com/fgrehm/brinfo/core"
@@ -16,6 +17,7 @@ type customArticleScraper struct {
 }
 
 type CustomArticleScraperConfig struct {
+	Title       xt.Extractor
 	PublishedAt xt.Extractor
 	Images      xt.Extractor
 }
@@ -31,15 +33,36 @@ func (s *customArticleScraper) Run(articleHtml []byte, url, contentType string) 
 	}
 
 	data := &core.ScrapedArticleData{}
+	if err = s.extractTitle(data, doc.Selection); err != nil {
+		return nil, err
+	}
 	if err = s.extractPublishedAt(data, doc.Selection); err != nil {
 		return nil, err
 	}
-	// TODO: Pass in URL for fixing relative links
-	if err = s.extractImages(data, doc.Selection); err != nil {
+	if err = s.extractImages(data, doc.Selection, url); err != nil {
 		return nil, err
 	}
 
 	return data, nil
+}
+
+func (s *customArticleScraper) extractTitle(data *core.ScrapedArticleData, root *goquery.Selection) error {
+	if s.cfg.Title == nil {
+		return nil
+	}
+
+	val, err := s.cfg.Title.Extract(root)
+	if err != nil {
+		return err
+	}
+
+	title, ok := val.(string)
+	if !ok {
+		return errors.New("invalid type for for PublishedAt")
+	}
+
+	data.Title = title
+	return nil
 }
 
 func (s *customArticleScraper) extractPublishedAt(data *core.ScrapedArticleData, root *goquery.Selection) error {
@@ -61,23 +84,53 @@ func (s *customArticleScraper) extractPublishedAt(data *core.ScrapedArticleData,
 	return nil
 }
 
-func (s *customArticleScraper) extractImages(data *core.ScrapedArticleData, root *goquery.Selection) error {
+func (s *customArticleScraper) extractImages(data *core.ScrapedArticleData, root *goquery.Selection, url string) error {
 	if s.cfg.Images == nil {
 		return nil
 	}
 
-	panic("Not working yet")
+	val, err := s.cfg.Images.Extract(root)
+	if err != nil {
+		return err
+	}
+	if val == nil {
+		return nil
+	}
 
-	// val, err := s.cfg.Images.Extract(root)
-	// if err != nil {
-	// 	return err
-	// }
+	imgs, ok := val.([]*core.ScrapedArticleImage)
+	if !ok {
+		return errors.New("invalid type for for Images")
+	}
+	s.fixRelativeImgUrls(imgs, url)
 
-	// pubAt, ok := val.([]ExtractorResult)
-	// if !ok {
-	// 	return errors.New("invalid type for for Images")
-	// }
+	data.Images = imgs
+	if data.ImageUrl == "" {
+		data.ImageUrl = imgs[0].Url
+	}
 
-	// data.PublishedAt = &pubAt
+	return nil
+}
+
+func (s *customArticleScraper) fixRelativeImgUrls(imgs []*core.ScrapedArticleImage, articleURL string) error {
+	parsedArticleURL, err := url.Parse(articleURL)
+	if err != nil {
+		return err
+	}
+
+	for _, img := range imgs {
+		u, err := url.Parse(img.Url)
+		if err != nil {
+			return err
+		}
+
+		if u.Scheme == "" {
+			u.Scheme = parsedArticleURL.Scheme
+		}
+		if u.Host == "" {
+			u.Host = parsedArticleURL.Host
+		}
+
+		img.Url = u.String()
+	}
 	return nil
 }

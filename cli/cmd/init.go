@@ -37,8 +37,8 @@ func init() {
 		ArticleScraper: scrapers.DefaultArticleScraper,
 	})
 	repo.Register(&core.ContentSource{
-		ID:   "br-gov-pr",
-		Host: "www.aen.pr.gov.br",
+		ID:               "br-gov-pr",
+		Host:             "www.aen.pr.gov.br",
 		ForceContentType: `text/html; charset="UTF-8"`,
 		ArticleScraper: core.CombinedArticleScraper(
 			scrapers.DefaultArticleScraper,
@@ -65,6 +65,20 @@ func init() {
 			scrapers.DefaultArticleScraper,
 			scrapers.CustomArticleScraper(scrapers.CustomArticleScraperConfig{
 				PublishedAt: xt.TimeText("#main-content .field--name-field-data-da-noticia"),
+				Images:      xt.Images(".field--name-field-fotos-galeria-multimidia .field--item a", "href"),
+			}),
+		),
+	})
+	repo.Register(&core.ContentSource{
+		ID:               "br-ses-ba",
+		Host:             "www.saude.ba.gov.br",
+		ForceContentType: `text/html; charset="ISO-8859-1"`,
+		ArticleScraper: core.CombinedArticleScraper(
+			scrapers.DefaultArticleScraper,
+			scrapers.CustomArticleScraper(scrapers.CustomArticleScraperConfig{
+				// TODO: Figure out why htmlinfo is not parsing the <head> properly here
+				Title:       xt.Text("#titulo h1", false),
+				PublishedAt: xt.TimeText("#conteudo .sc_event_date strong"),
 			}),
 		),
 	})
