@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 )
 
@@ -41,7 +42,7 @@ func (s *combinedArticleScraper) Run(ctx context.Context, articleHtml []byte, ur
 		if err != nil {
 			return nil, err
 		}
-		data.absorb(newData)
+		data.CollectValues(newData)
 	}
 	return data, nil
 }
@@ -63,7 +64,16 @@ type ScrapedArticleData struct {
 	ImageUrl     string                 `json:"image_url"`
 }
 
-func (d *ScrapedArticleData) absorb(other *ScrapedArticleData) {
+func ScrapedArticleDataFromJSON(data []byte) (*ScrapedArticleData, error) {
+	articleData := &ScrapedArticleData{}
+	err := json.Unmarshal(data, &articleData)
+	if err != nil {
+		return nil, err
+	}
+	return articleData, nil
+}
+
+func (d *ScrapedArticleData) CollectValues(other *ScrapedArticleData) {
 	if other.Extra != nil && len(other.Extra) > 0 {
 		if d.Extra == nil || len(d.Extra) == 0 {
 			d.Extra = other.Extra

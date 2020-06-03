@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var inspectArticle = &cobra.Command{
+var inspectArticleCmd = &cobra.Command{
 	Use:   "inspect-article [URL]",
 	Short: "Inspect an article's page and output some useful information about it",
 	Args:  cobra.ExactArgs(1),
@@ -26,6 +26,7 @@ var inspectArticle = &cobra.Command{
 		data, err := op.InspectArticle(cmd.Context(), op.InspectArticleInput{
 			Url:               urlToInspect.String(),
 			ContentSourceRepo: repo,
+			MergeWith:         mergeWithFlag,
 		})
 		if err != nil {
 			panic(err)
@@ -46,5 +47,6 @@ var inspectArticle = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(inspectArticle)
+	rootCmd.AddCommand(inspectArticleCmd)
+	inspectArticleCmd.Flags().StringVarP(&mergeWithFlag, "merge-with", "m", "", "JSON to merge with the scraped article data")
 }

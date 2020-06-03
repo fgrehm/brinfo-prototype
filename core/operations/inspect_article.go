@@ -12,6 +12,7 @@ type InspectArticleInput struct {
 	ContentSourceRepo ContentSourceRepo
 	Url               string
 	ArticleScraper    ArticleScraper
+	MergeWith         string
 }
 
 type InspectedArticleData struct {
@@ -22,16 +23,24 @@ func InspectArticle(ctx context.Context, input InspectArticleInput) (*InspectedA
 	var (
 		url     = input.Url
 		scraper = input.ArticleScraper
+		mergeWith *ScrapedArticleData
 
 		cs  *ContentSource
 		err error
+		log = loggerFromContext(ctx)
 	)
 
+	if input.MergeWith != "" {
+		mergeWith, err = ScrapedArticleDataFromJSON([]byte(input.MergeWith))
+		log.Debugf("Will merge with '%s'", input.MergeWith)
+		if err != nil {
+			return nil, err
+		}
+	}
 	if err = validateInspectArticleInput(input); err != nil {
 		return nil, err
 	}
 
-	log := loggerFromContext(ctx)
 	if input.ContentSourceRepo != nil {
 		log.Debugf("Looking up content source for %s", input.Url)
 		cs, err = lookupContentSourceForUrl(ctx, input.ContentSourceRepo, input.Url)
@@ -58,6 +67,11 @@ func InspectArticle(ctx context.Context, input InspectArticleInput) (*InspectedA
 	data, err := doScrapeArticle(ctx, url, cs, scraper)
 	if err != nil {
 		return nil, err
+	}
+
+	if mergeWith != nil {
+		log.Debugf("Merging with %s", input.MergeWith)
+		data.CollectValues(mergeWith)
 	}
 
 	return &InspectedArticleData{data}, nil
