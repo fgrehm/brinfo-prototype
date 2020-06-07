@@ -3,19 +3,15 @@ package operations_test
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
+	"time"
 
 	. "github.com/fgrehm/brinfo/core"
 	op "github.com/fgrehm/brinfo/core/operations"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"net/http/httptest"
-)
-
-var (
-	ts *httptest.Server
 )
 
 func TestOperations(t *testing.T) {
@@ -24,7 +20,21 @@ func TestOperations(t *testing.T) {
 	RunSpecs(t, "Operations Suite")
 }
 
-func newTestServer() *httptest.Server {
+type testServer struct {
+	server   *httptest.Server
+	articles []*testArticle
+	perPage  int
+}
+
+type testArticle struct {
+	slug        string
+	title       string
+	publishedAt time.Time
+	excerpt     string
+	body        string
+}
+
+func newTestServer() *testServer {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/good", func(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +53,17 @@ func newTestServer() *httptest.Server {
 		`))
 	})
 
-	return httptest.NewServer(mux)
+	return &testServer{
+		server: httptest.NewServer(mux),
+	}
+}
+
+func (s *testServer) URL() string {
+	return s.server.URL
+}
+
+func (s *testServer) Close() {
+	s.server.Close()
 }
 
 type fakeScraper struct {

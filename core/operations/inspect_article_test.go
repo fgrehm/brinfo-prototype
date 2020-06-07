@@ -16,6 +16,7 @@ var _ = Describe("InspectArticle", func() {
 		fakeData *ScrapedArticleData
 		scraper  *fakeScraper
 		ctx      context.Context
+		ts       *testServer
 	)
 
 	BeforeEach(func() {
@@ -49,7 +50,7 @@ var _ = Describe("InspectArticle", func() {
 
 		It("gets delegated to the article scraper", func() {
 			data, err := InspectArticle(ctx, InspectArticleInput{
-				Url:               ts.URL + "/good",
+				Url:               ts.URL() + "/good",
 				ArticleScraper:    scraper,
 				ContentSourceRepo: mem.NewContentSourceRepo(),
 			})
@@ -60,7 +61,7 @@ var _ = Describe("InspectArticle", func() {
 
 		It("returns an error if http response is not 200", func() {
 			_, err := InspectArticle(ctx, InspectArticleInput{
-				Url:               ts.URL + "/bad",
+				Url:               ts.URL() + "/bad",
 				ArticleScraper:    scraper,
 				ContentSourceRepo: mem.NewContentSourceRepo(),
 			})
