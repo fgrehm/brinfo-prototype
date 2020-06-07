@@ -38,6 +38,17 @@ var _ = Describe("Date extractors", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).NotTo(BeNil())
 			Expect(val).To(Equal(time.Date(2020, 2, 21, 16, 50, 0, 0, brLoc)))
+
+			e = TimeText("p")
+			val, err = e.Extract(Fragment(`<p>21 de FeVereiro dE 2020 àS 16:26 | <span>Geral</span></p>`))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(val).NotTo(BeNil())
+			Expect(val).To(Equal(time.Date(2020, 2, 21, 16, 26, 0, 0, brLoc)))
+
+			val, err = e.Extract(Fragment(`<p><strong>Publicação</strong>: 22 de março dE 2020 àS 16:22 | <span>Geral</span></p>`))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(val).NotTo(BeNil())
+			Expect(val).To(Equal(time.Date(2020, 3, 22, 16, 22, 0, 0, brLoc)))
 		})
 
 		It("errors if element not found", func() {

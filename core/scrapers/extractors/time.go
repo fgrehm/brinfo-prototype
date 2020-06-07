@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	brDateTimeRegex = regexp.MustCompile(`^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}(\s|-)+[0-9]{1,2}[h:][0-9]{1,2}$`)
-	brLoc           *time.Location
+	brDateTimeRegex     = regexp.MustCompile(`^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}(\s|-)+[0-9]{1,2}[h:][0-9]{1,2}$`)
+	brLongDateTimeRegex = regexp.MustCompile(`(?i)(?P<day>\d{1,2}) de (?P<longMonth>(\w|ç)+) de (?P<longYear>\d{4}) [àa]s (?P<hour>\d{1,2}):(?P<minute>\d{1,2})`)
+	brLoc               *time.Location
 )
 
 type timeAttrExtractor struct {
@@ -21,6 +22,7 @@ type timeAttrExtractor struct {
 
 type timeTextExtractor struct {
 	*textExtractor
+	format string
 }
 
 func init() {
@@ -140,6 +142,10 @@ func parseExtractedTime(timeStr string) (*time.Time, error) {
 		err error
 	)
 
+	if brLongDateTimeRegex.MatchString(timeStr) {
+		timeStr = adjustLongDateTime(timeStr)
+	}
+
 	if brDateTimeRegex.MatchString(timeStr) {
 		timeStr = strings.Replace(timeStr, "h", ":", 1)
 		timeStr = strings.Replace(timeStr, "H", ":", 1)
@@ -161,4 +167,38 @@ func parseExtractedTime(timeStr string) (*time.Time, error) {
 		return nil, nil
 	}
 	return &dt, nil
+}
+
+var longMonthTranslationMap = map[*regexp.Regexp]string{
+	regexp.MustCompile(`(?i)janeiro`):   "01",
+	regexp.MustCompile(`(?i)fevereiro`): "02",
+	regexp.MustCompile(`(?i)março`):     "03",
+	regexp.MustCompile(`(?i)marco`):     "03",
+	regexp.MustCompile(`(?i)abril`):     "04",
+	regexp.MustCompile(`(?i)maio`):      "05",
+	regexp.MustCompile(`(?i)junho`):     "06",
+	regexp.MustCompile(`(?i)julho`):     "07",
+	regexp.MustCompile(`(?i)agosto`):    "08",
+	regexp.MustCompile(`(?i)setembro`):  "09",
+	regexp.MustCompile(`(?i)outubro`):   "10",
+	regexp.MustCompile(`(?i)novembro`):  "11",
+	regexp.MustCompile(`(?i)dezembro`):  "11",
+}
+
+func adjustLongDateTime(timeStr string) string {
+	template := []byte("$day/$month$longMonth/$year$longYear $hour:$minute")
+	result := []byte{}
+	for _, submatches := range brLongDateTimeRegex.FindAllSubmatchIndex([]byte(timeStr), -1) {
+		result = brLongDateTimeRegex.Expand(result, template, []byte(timeStr), submatches)
+	}
+	return translateLongMonth(string(result))
+}
+
+func translateLongMonth(str string) string {
+	for reg, replacement := range longMonthTranslationMap {
+		if reg.MatchString(str) {
+			return reg.ReplaceAllString(str, replacement)
+		}
+	}
+	return str
 }
