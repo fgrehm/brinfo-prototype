@@ -87,6 +87,26 @@ func (e *timeAttrExtractor) Extract(root *goquery.Selection) (ExtractorResult, e
 	return nil, nil
 }
 
+func TimeText(selector string) Extractor {
+	return &timeTextExtractor{
+		textExtractor: &textExtractor{
+			selector: selector,
+			multiple: false,
+			required: true,
+		},
+	}
+}
+
+func OptTimeText(selector string) Extractor {
+	return &timeTextExtractor{
+		textExtractor: &textExtractor{
+			selector: selector,
+			multiple: false,
+			required: false,
+		},
+	}
+}
+
 func (e *timeTextExtractor) Extract(root *goquery.Selection) (ExtractorResult, error) {
 	res, err := e.textExtractor.Extract(root)
 	if err != nil {
@@ -114,26 +134,6 @@ func (e *timeTextExtractor) Extract(root *goquery.Selection) (ExtractorResult, e
 	}
 
 	return nil, nil
-}
-
-func TimeText(selector string) Extractor {
-	return &timeTextExtractor{
-		textExtractor: &textExtractor{
-			selector: selector,
-			multiple: false,
-			required: true,
-		},
-	}
-}
-
-func OptTimeText(selector string) Extractor {
-	return &timeTextExtractor{
-		textExtractor: &textExtractor{
-			selector: selector,
-			multiple: false,
-			required: false,
-		},
-	}
 }
 
 func parseExtractedTime(timeStr string) (*time.Time, error) {
