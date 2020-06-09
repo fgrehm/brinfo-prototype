@@ -9,6 +9,7 @@ import (
 type structuredExtractor struct {
 	selector string
 	configs  map[string]Extractor
+	multiple bool
 }
 
 func Structured(selector string, extractors map[string]Extractor) Extractor {
@@ -18,19 +19,66 @@ func Structured(selector string, extractors map[string]Extractor) Extractor {
 	if len(extractors) == 0 {
 		panic("No extractors provided")
 	}
-	return &structuredExtractor{selector, extractors}
+	return &structuredExtractor{selector, extractors, false}
+}
+
+func StructuredList(selector string, extractors map[string]Extractor) Extractor {
+	if selector == "" {
+		panic("No selector provided")
+	}
+	if len(extractors) == 0 {
+		panic("No extractors provided")
+	}
+	return &structuredExtractor{selector, extractors, true}
 }
 
 func (e *structuredExtractor) Extract(sel *goquery.Selection) (ExtractorResult, error) {
-	ret := map[string]ExtractorResult{}
 	root := sel.Find(e.selector)
 
-	// TODO: Error if multiple found
+	if root.Length() == 0 {
+		return nil, fmt.Errorf("'%s' not found", e.selector)
+	}
 
-	// TODO: Collect all errors instead of returning on the first one
-	for fieldName, extractor := range e.configs {
-		result, err := extractor.Extract(root)
+	if !e.multiple {
+		if root.Length() > 1 {
+			return nil, fmt.Errorf("Multiple '%s' found (%d)", e.selector, sel.Length())
+		}
+
+		if root.Length() == 1 {
+			return e.extractOne(root)
+		}
+	}
+
+	var err error
+	result := []map[string]ExtractorResult{}
+
+	root.Each(func(idx int, s *goquery.Selection) {
 		if err != nil {
+			return
+		}
+
+		value, innerErr := e.extractOne(s)
+		if innerErr != nil {
+			err = innerErr
+			return
+		}
+
+		result = append(result, value)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (e *structuredExtractor) extractOne(sel *goquery.Selection) (map[string]ExtractorResult, error) {
+	ret := map[string]ExtractorResult{}
+	for fieldName, extractor := range e.configs {
+		result, err := extractor.Extract(sel)
+		if err != nil {
+			// errors.WithStack
 			return nil, fmt.Errorf("within '%s' > %s", e.selector, err)
 		}
 		ret[fieldName] = result

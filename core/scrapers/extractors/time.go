@@ -11,7 +11,9 @@ import (
 )
 
 var (
-	brDateTimeRegex     = regexp.MustCompile(`^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}(\s|-)+[0-9]{1,2}[h:][0-9]{1,2}$`)
+	brDateTimeRegex            = regexp.MustCompile(`^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}(\s|-)+[0-9]{1,2}[h:][0-9]{1,2}([m:][0-9]{1,2}s?)?$`)
+	brDateTimeWithSecondsRegex = regexp.MustCompile(`^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}\s+[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}$`)
+
 	brLongDateTimeRegex = regexp.MustCompile(`(?i)(?P<day>\d{1,2}) de (?P<longMonth>(\w|ç)+) de (?P<longYear>\d{4}) [àa]s (?P<hour>\d{1,2}):(?P<minute>\d{1,2})`)
 	brLoc               *time.Location
 )
@@ -149,8 +151,15 @@ func parseExtractedTime(timeStr string) (*time.Time, error) {
 	if brDateTimeRegex.MatchString(timeStr) {
 		timeStr = strings.Replace(timeStr, "h", ":", 1)
 		timeStr = strings.Replace(timeStr, "H", ":", 1)
+		timeStr = strings.Replace(timeStr, "m", ":", 1)
+		timeStr = strings.Replace(timeStr, "M", ":", 1)
 		timeStr = strings.Replace(timeStr, " - ", " ", 1)
-		dt, err = time.ParseInLocation("_2/01/2006 15:04", timeStr, brLoc)
+		// HACK
+		if brDateTimeWithSecondsRegex.MatchString(timeStr) {
+			dt, err = time.ParseInLocation("_2/01/2006 15:04:05", timeStr, brLoc)
+		} else {
+			dt, err = time.ParseInLocation("_2/01/2006 15:04", timeStr, brLoc)
+		}
 		if err != nil {
 			return nil, err
 		}

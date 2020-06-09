@@ -16,7 +16,7 @@ var _ = Describe("FromString", func() {
 	}
 
 	Context("single attribute extraction", func() {
-		It("works for required data", func () {
+		It("works for required data", func() {
 			e, err := FromString("p a | href")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(e).NotTo(BeNil())
@@ -29,7 +29,7 @@ var _ = Describe("FromString", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
-		It("works for optional data", func () {
+		It("works for optional data", func() {
 			e, err := FromString("p a | href?")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(e).NotTo(BeNil())
@@ -45,7 +45,7 @@ var _ = Describe("FromString", func() {
 	})
 
 	Context("single text extraction", func() {
-		It("works for required data", func () {
+		It("works for required data", func() {
 			e, err := FromString("p a | text")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(e).NotTo(BeNil())
@@ -58,7 +58,7 @@ var _ = Describe("FromString", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
-		It("works for optional data", func () {
+		It("works for optional data", func() {
 			e, err := FromString("p a | text?")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(e).NotTo(BeNil())
@@ -74,7 +74,7 @@ var _ = Describe("FromString", func() {
 	})
 
 	Context("time attribute extraction", func() {
-		It("works for required data", func () {
+		It("works for required data", func() {
 			e, err := FromString("time.pub | pubdate::time")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(e).NotTo(BeNil())
@@ -87,7 +87,7 @@ var _ = Describe("FromString", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
-		It("works for optional data", func () {
+		It("works for optional data", func() {
 			e, err := FromString("time.pub | pubdate?::time")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(e).NotTo(BeNil())
@@ -102,7 +102,7 @@ var _ = Describe("FromString", func() {
 	})
 
 	Context("time text extraction", func() {
-		It("works for required data", func () {
+		It("works for required data", func() {
 			e, err := FromString("p em | text::time")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(e).NotTo(BeNil())
@@ -116,7 +116,7 @@ var _ = Describe("FromString", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
-		It("works for optional data", func () {
+		It("works for optional data", func() {
 			e, err := FromString("p em | text?::time")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(e).NotTo(BeNil())

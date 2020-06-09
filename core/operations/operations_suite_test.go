@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	. "github.com/fgrehm/brinfo/core"
 	op "github.com/fgrehm/brinfo/core/operations"
@@ -27,16 +26,19 @@ type testServer struct {
 }
 
 type testArticle struct {
-	slug        string
+	url         string
+	imageURL    string
 	title       string
-	publishedAt time.Time
+	publishedAt string
 	excerpt     string
 	body        string
 }
 
 func newTestServer() *testServer {
+	ts := &testServer{perPage: 5}
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("/articles", ts.listArticles)
 	mux.HandleFunc("/good", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		w.Write([]byte(`<!DOCTYPE html>
@@ -53,9 +55,8 @@ func newTestServer() *testServer {
 		`))
 	})
 
-	return &testServer{
-		server: httptest.NewServer(mux),
-	}
+	ts.server = httptest.NewServer(mux)
+	return ts
 }
 
 func (s *testServer) URL() string {
@@ -64,6 +65,59 @@ func (s *testServer) URL() string {
 
 func (s *testServer) Close() {
 	s.server.Close()
+}
+
+func (s *testServer) listArticles(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	w.Write([]byte(`<!DOCTYPE html>
+<html>
+	<head>
+		<title>Articles</title>
+	</head>
+	<body>
+		<h1>Page header</h1>
+		<ul>
+			` + s.renderArticlesList() + `
+		</ul>
+	</body>
+</html>`))
+}
+
+func (s *testServer) renderArticlesList() string {
+	if s.articles == nil || len(s.articles) == 0 {
+		// TODO: Set a default array from newTestServer()
+		return `
+<li>
+	<a href="http://example.com">Out same tab</a>
+</li>
+<li>
+	<a href="http://example.com" target="_blank">Out new tab</a>
+</li>
+<li>
+	<a href="/article?id=1">Relative</a>
+</li>
+<li>
+	<a href="` + s.URL() + `/article?id=2">Full path</a>
+</li>`
+	}
+
+	list := ""
+	for _, a := range s.articles {
+		linkText := a.title
+		if linkText == "" {
+			linkText = a.url
+		}
+		list += `<li><a href="` + a.url + `">` + linkText + `</a>`
+		if a.publishedAt != "" {
+			list += `<time>` + a.publishedAt + `</time>`
+		}
+		if a.imageURL != "" {
+			list += `<img src="` + a.imageURL + `">`
+		}
+		list += `</li>`
+	}
+
+	return list
 }
 
 type fakeScraper struct {

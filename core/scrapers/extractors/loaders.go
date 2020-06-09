@@ -1,8 +1,8 @@
 package extractors
 
 import (
-	"regexp"
 	"fmt"
+	"regexp"
 )
 
 var extractorSpecRegexp = regexp.MustCompile(`^\s*([^\\|]+\S)\s*\|\s*([\w]+)(\?)?(?:::(time))?\s*$`)
