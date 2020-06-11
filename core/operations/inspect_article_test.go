@@ -30,13 +30,13 @@ var _ = Describe("InspectArticle", func() {
 
 	Context("validations", func() {
 		It("fails if no url provided", func() {
-			_, err := InspectArticle(ctx, InspectArticleInput{Url: "", ContentSourceRepo: mem.NewContentSourceRepo()})
+			_, err := InspectArticle(ctx, InspectArticleArgs{URL: "", ContentSourceRepo: mem.NewContentSourceRepo()})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(MatchRegexp("^No URL provided$"))
 		})
 
 		It("fails if no content repo provided", func() {
-			_, err := InspectArticle(ctx, InspectArticleInput{Url: "http://go.com"})
+			_, err := InspectArticle(ctx, InspectArticleArgs{URL: "http://go.com"})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(MatchRegexp("^No content source repo provided$"))
 		})
@@ -49,8 +49,8 @@ var _ = Describe("InspectArticle", func() {
 		})
 
 		It("gets delegated to the article scraper", func() {
-			data, err := InspectArticle(ctx, InspectArticleInput{
-				Url:               ts.URL() + "/good",
+			data, err := InspectArticle(ctx, InspectArticleArgs{
+				URL:               ts.URL() + "/good",
 				ArticleScraper:    scraper,
 				ContentSourceRepo: mem.NewContentSourceRepo(),
 			})
@@ -60,8 +60,8 @@ var _ = Describe("InspectArticle", func() {
 		})
 
 		It("returns an error if http response is not 200", func() {
-			_, err := InspectArticle(ctx, InspectArticleInput{
-				Url:               ts.URL() + "/bad",
+			_, err := InspectArticle(ctx, InspectArticleArgs{
+				URL:               ts.URL() + "/bad",
 				ArticleScraper:    scraper,
 				ContentSourceRepo: mem.NewContentSourceRepo(),
 			})

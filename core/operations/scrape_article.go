@@ -7,24 +7,24 @@ import (
 	. "github.com/fgrehm/brinfo/core"
 )
 
-type ScrapeArticleInput struct {
+type ScrapeArticleArgs struct {
 	UseCache      bool
 	Repo          ContentSourceRepo
 	ContentSource *ContentSource
-	Url           string
+	URL           string
 }
 
-func ScrapeArticle(ctx context.Context, input ScrapeArticleInput) (*ScrapedArticleData, error) {
+func ScrapeArticle(ctx context.Context, args ScrapeArticleArgs) (*ScrapedArticleData, error) {
 	var (
-		url   = input.Url
-		cs    = input.ContentSource
-		repo  = input.Repo
-		cache = input.UseCache
+		url   = args.URL
+		cs    = args.ContentSource
+		repo  = args.Repo
+		cache = args.UseCache
 
 		err error
 	)
 
-	if err = input.validate(); err != nil {
+	if err = args.validate(); err != nil {
 		return nil, err
 	}
 
@@ -46,8 +46,8 @@ func ScrapeArticle(ctx context.Context, input ScrapeArticleInput) (*ScrapedArtic
 	return data, nil
 }
 
-func (i ScrapeArticleInput) validate() error {
-	if i.Url == "" {
+func (i ScrapeArticleArgs) validate() error {
+	if i.URL == "" {
 		return errors.New("No URL provided")
 	}
 	if i.ContentSource == nil && i.Repo == nil {

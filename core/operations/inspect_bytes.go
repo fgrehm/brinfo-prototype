@@ -8,62 +8,32 @@ import (
 	. "github.com/fgrehm/brinfo/core/scrapers"
 )
 
-type InspectBytesInput struct {
-	Html              []byte
-	ContentSourceRepo ContentSourceRepo
-	ContentSource     *ContentSource
-	ArticleScraper    ArticleScraper
-	Url               string
-	ContentType       *string
+type InspectBytesArgs struct {
+	HTML           []byte
+	URL            string
+	ArticleScraper ArticleScraper
+	ContentType    string
 }
 
-func InspectBytes(ctx context.Context, input InspectBytesInput) (interface{}, error) {
-	if len(input.Html) == 0 {
+func InspectBytes(ctx context.Context, args InspectBytesArgs) (*ScrapedArticleData, error) {
+	if len(args.HTML) == 0 {
 		return nil, errors.New("No HTML provided")
 	}
-	if len(input.Url) == 0 {
-		return nil, errors.New("No Url provided")
+	if len(args.URL) == 0 {
+		return nil, errors.New("No URL provided")
 	}
 
-	cs, err := fetchContentSource(ctx, input)
-	if err != nil {
-		return nil, err
+	if args.ContentType == "" {
+		args.ContentType = "text/html; charset=UTF-8"
+	}
+	if args.ArticleScraper == nil {
+		args.ArticleScraper = DefaultArticleScraper
 	}
 
-	contentType := "text/html; charset=UTF-8"
-	if cs != nil && cs.ForceContentType != "" {
-		contentType = cs.ForceContentType
-	}
-
-	scraper := fetchScraper(input, cs)
-	data, err := scraper.Run(ctx, input.Html, input.Url, contentType)
+	data, err := args.ArticleScraper.Run(ctx, args.HTML, args.URL, args.ContentType)
 	if err != nil {
 		return nil, err
 	}
 
 	return data, nil
-}
-
-func fetchContentSource(ctx context.Context, input InspectBytesInput) (*ContentSource, error) {
-	if input.ContentSource != nil {
-		return input.ContentSource, nil
-	}
-
-	if input.ContentSourceRepo != nil {
-		return lookupContentSourceForUrl(ctx, input.ContentSourceRepo, input.Url)
-	}
-
-	return nil, nil
-}
-
-func fetchScraper(input InspectBytesInput, cs *ContentSource) ArticleScraper {
-	if input.ArticleScraper != nil {
-		return input.ArticleScraper
-	}
-
-	if cs != nil && cs.ArticleScraper != nil {
-		return cs.ArticleScraper
-	}
-
-	return DefaultArticleScraper
 }

@@ -24,9 +24,9 @@ var inspectFile = &cobra.Command{
 			return err
 		}
 
-		data, err := op.InspectBytes(cmd.Context(), op.InspectBytesInput{
-			Html: fileContents,
-			Url:  args[1],
+		data, err := op.InspectBytes(cmd.Context(), op.InspectBytesArgs{
+			HTML: fileContents,
+			URL:  args[1],
 		})
 		if err != nil {
 			panic(err)

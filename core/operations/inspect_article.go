@@ -8,10 +8,10 @@ import (
 	. "github.com/fgrehm/brinfo/core/scrapers"
 )
 
-type InspectArticleInput struct {
+type InspectArticleArgs struct {
 	UseCache          bool
 	ContentSourceRepo ContentSourceRepo
-	Url               string
+	URL               string
 	ArticleScraper    ArticleScraper
 	MergeWith         string
 }
@@ -20,11 +20,11 @@ type InspectedArticleData struct {
 	*ScrapedArticleData
 }
 
-func InspectArticle(ctx context.Context, input InspectArticleInput) (*InspectedArticleData, error) {
+func InspectArticle(ctx context.Context, args InspectArticleArgs) (*InspectedArticleData, error) {
 	var (
-		url       = input.Url
-		scraper   = input.ArticleScraper
-		cache     = input.UseCache
+		url       = args.URL
+		scraper   = args.ArticleScraper
+		cache     = args.UseCache
 		mergeWith *ScrapedArticleData
 
 		cs  *ContentSource
@@ -32,20 +32,20 @@ func InspectArticle(ctx context.Context, input InspectArticleInput) (*InspectedA
 		log = loggerFromContext(ctx)
 	)
 
-	if input.MergeWith != "" {
-		mergeWith, err = ScrapedArticleDataFromJSON([]byte(input.MergeWith))
-		log.Debugf("Will merge with '%s'", input.MergeWith)
+	if args.MergeWith != "" {
+		mergeWith, err = ScrapedArticleDataFromJSON([]byte(args.MergeWith))
+		log.Debugf("Will merge with '%s'", args.MergeWith)
 		if err != nil {
 			return nil, err
 		}
 	}
-	if err = validateInspectArticleInput(input); err != nil {
+	if err = validateInspectArticleArgs(args); err != nil {
 		return nil, err
 	}
 
-	if input.ContentSourceRepo != nil {
-		log.Debugf("Looking up content source for %s", input.Url)
-		cs, err = lookupContentSourceForUrl(ctx, input.ContentSourceRepo, input.Url)
+	if args.ContentSourceRepo != nil {
+		log.Debugf("Looking up content source for %s", args.URL)
+		cs, err = lookupContentSourceForUrl(ctx, args.ContentSourceRepo, args.URL)
 		if err != nil {
 			return nil, err
 		}
@@ -72,18 +72,18 @@ func InspectArticle(ctx context.Context, input InspectArticleInput) (*InspectedA
 	}
 
 	if mergeWith != nil {
-		log.Debugf("Merging with %s", input.MergeWith)
+		log.Debugf("Merging with %s", args.MergeWith)
 		data.CollectValues(mergeWith)
 	}
 
 	return &InspectedArticleData{data}, nil
 }
 
-func validateInspectArticleInput(input InspectArticleInput) error {
-	if input.Url == "" {
+func validateInspectArticleArgs(args InspectArticleArgs) error {
+	if args.URL == "" {
 		return errors.New("No URL provided")
 	}
-	if input.ContentSourceRepo == nil {
+	if args.ContentSourceRepo == nil {
 		return errors.New("No content source repo provided")
 	}
 

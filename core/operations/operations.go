@@ -29,10 +29,12 @@ func doScrapeArticle(ctx context.Context, cache bool, url string, cs *ContentSou
 		contentType = cs.ForceContentType
 	}
 
-	data, err := scraper.Run(ctx, body, url, contentType)
-	if err != nil {
-		return nil, err
-	}
+	data, err := InspectBytes(ctx, InspectBytesArgs{
+		HTML:           body,
+		URL:            url,
+		ContentType:    contentType,
+		ArticleScraper: scraper,
+	})
 	if cs != nil {
 		data.SourceID = cs.ID
 	}

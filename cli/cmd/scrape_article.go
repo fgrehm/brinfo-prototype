@@ -27,9 +27,9 @@ var scrapeCmd = &cobra.Command{
 		}
 
 		log.Infof("Scraping %s", urlToScrape)
-		data, err := op.ScrapeArticle(cmd.Context(), op.ScrapeArticleInput{
+		data, err := op.ScrapeArticle(cmd.Context(), op.ScrapeArticleArgs{
 			UseCache: cfgCache,
-			Url:      urlToScrape.String(),
+			URL:      urlToScrape.String(),
 			Repo:     repo,
 		})
 		if err != nil {

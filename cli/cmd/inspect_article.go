@@ -22,9 +22,9 @@ var inspectArticleCmd = &cobra.Command{
 		}
 
 		logger := log.FromContext(cmd.Context())
-		data, err := op.InspectArticle(cmd.Context(), op.InspectArticleInput{
+		data, err := op.InspectArticle(cmd.Context(), op.InspectArticleArgs{
 			UseCache:          cfgCache,
-			Url:               urlToInspect.String(),
+			URL:               urlToInspect.String(),
 			ContentSourceRepo: repo,
 			MergeWith:         mergeWithFlag,
 		})
