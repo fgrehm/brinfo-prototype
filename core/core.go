@@ -141,3 +141,9 @@ type ScrapedArticleImage struct {
 	Width     uint64 `json:"width"`
 	Height    uint64 `json:"height"`
 }
+
+type ArticleLink struct {
+	URL         string     `json:"url"`
+	PublishedAt *time.Time `json:"published_at,omitempty"`
+	ImageURL    *string    `json:"image_url,omitempty"`
+}

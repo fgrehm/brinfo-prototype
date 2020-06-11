@@ -56,7 +56,7 @@ func (e *attrExtractor) Extract(root *goquery.Selection) (ExtractorResult, error
 			if attr == "" {
 				return nil, nil
 			}
-			return strings.Trim(attr, " "), nil
+			return strings.TrimSpace(attr), nil
 		}
 	}
 	if sel.Length() > 1 && !e.multiple {
@@ -72,7 +72,7 @@ func (e *attrExtractor) Extract(root *goquery.Selection) (ExtractorResult, error
 				return ""
 			}
 		}
-		return strings.Trim(attr, " ")
+		return strings.TrimSpace(attr)
 	})
 
 	if err != nil {

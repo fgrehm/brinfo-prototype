@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-var extractorSpecRegexp = regexp.MustCompile(`^\s*([^\\|]+\S)\s*\|\s*([\w]+)(\?)?(?:::(time))?\s*$`)
+var extractorSpecRegexp = regexp.MustCompile(`^\s*([^\\|]+\S?)\s*\|\s*([\w]+)(\?)?(?:::(time))?\s*$`)
 
 func FromString(extractorStr string) (Extractor, error) {
 	match := extractorSpecRegexp.FindStringSubmatch(extractorStr)

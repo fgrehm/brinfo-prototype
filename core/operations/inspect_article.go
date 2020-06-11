@@ -21,8 +21,8 @@ type InspectedArticleData struct {
 
 func InspectArticle(ctx context.Context, input InspectArticleInput) (*InspectedArticleData, error) {
 	var (
-		url     = input.Url
-		scraper = input.ArticleScraper
+		url       = input.Url
+		scraper   = input.ArticleScraper
 		mergeWith *ScrapedArticleData
 
 		cs  *ContentSource

@@ -5,6 +5,7 @@ import (
 	"context"
 	neturl "net/url"
 	"time"
+	"regexp"
 
 	"github.com/fgrehm/brinfo/core"
 	xt "github.com/fgrehm/brinfo/core/scrapers/extractors"
@@ -18,12 +19,6 @@ type ScrapeArticlesListingArgs struct {
 	URLExtractor         string
 	PublishedAtExtractor string
 	ImageURLExtractor    string
-}
-
-type ScrapedArticleLink struct {
-	URL         string
-	PublishedAt *time.Time
-	ImageURL    *string
 }
 
 type articlesListingScraper struct {
@@ -101,31 +96,26 @@ func (s *articlesListingScraper) scrape(ctx context.Context) ([]*core.ArticleLin
 
 	ret := []*core.ArticleLink{}
 	for _, res := range list {
-		var (
-			publishedAt *time.Time
-			imageURL    *string
-		)
+		link := &core.ArticleLink{}
 
 		if res["published_at"] != nil {
 			pubAt := res["published_at"].(time.Time)
-			publishedAt = &pubAt
+			link.PublishedAt = &pubAt
 		}
 		if res["image_url"] != nil {
-			url := s.fixRelativeLink(res["image_url"].(string))
-			imageURL = &url
+			imageURL := s.fixRelativeURL(res["image_url"].(string))
+			link.ImageURL = &imageURL
 		}
-		link := &core.ArticleLink{
-			URL:         s.fixRelativeLink(res["url"].(string)),
-			PublishedAt: publishedAt,
-			ImageURL:    imageURL,
-		}
+		link.URL = s.fixRelativeURL(res["url"].(string))
+
 		ret = append(ret, link)
 	}
 
 	return ret, nil
 }
 
-func (s *articlesListingScraper) fixRelativeLink(url string) string {
+func (s *articlesListingScraper) fixRelativeURL(url string) string {
+	url = regexp.MustCompile(`\s*`).ReplaceAllString(url, "")
 	u, err := neturl.Parse(url)
 	if err != nil {
 		panic(err)
