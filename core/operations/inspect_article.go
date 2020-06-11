@@ -9,6 +9,7 @@ import (
 )
 
 type InspectArticleInput struct {
+	UseCache          bool
 	ContentSourceRepo ContentSourceRepo
 	Url               string
 	ArticleScraper    ArticleScraper
@@ -23,6 +24,7 @@ func InspectArticle(ctx context.Context, input InspectArticleInput) (*InspectedA
 	var (
 		url       = input.Url
 		scraper   = input.ArticleScraper
+		cache     = input.UseCache
 		mergeWith *ScrapedArticleData
 
 		cs  *ContentSource
@@ -64,7 +66,7 @@ func InspectArticle(ctx context.Context, input InspectArticleInput) (*InspectedA
 		scraper = DefaultArticleScraper
 	}
 
-	data, err := doScrapeArticle(ctx, url, cs, scraper)
+	data, err := doScrapeArticle(ctx, cache, url, cs, scraper)
 	if err != nil {
 		return nil, err
 	}

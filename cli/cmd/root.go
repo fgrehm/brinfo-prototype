@@ -13,6 +13,7 @@ import (
 
 var (
 	cfgFile       string
+	cfgCache      bool
 	mergeWithFlag string
 )
 
@@ -34,6 +35,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.brinfo.yaml)")
+	rootCmd.PersistentFlags().BoolVarP(&cfgCache, "use-cache", "", false, "enable caching, data is kept on .brinfo-cache/")
 }
 
 // initConfig reads in config file and ENV variables if set.

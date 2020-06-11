@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	neturl "net/url"
-	"time"
 	"regexp"
+	"time"
 
 	"github.com/fgrehm/brinfo/core"
 	xt "github.com/fgrehm/brinfo/core/scrapers/extractors"
@@ -14,6 +14,7 @@ import (
 )
 
 type ScrapeArticlesListingArgs struct {
+	UseCache             bool
 	URL                  string
 	LinkContainer        string
 	URLExtractor         string
@@ -25,6 +26,7 @@ type articlesListingScraper struct {
 	url       string
 	parsedURL *neturl.URL
 	extractor xt.Extractor
+	cache     bool
 }
 
 func ScrapeArticlesListing(ctx context.Context, args ScrapeArticlesListingArgs) ([]*core.ArticleLink, error) {
@@ -68,13 +70,14 @@ func ScrapeArticlesListing(ctx context.Context, args ScrapeArticlesListingArgs) 
 		url:       args.URL,
 		parsedURL: parsedURL,
 		extractor: xt.StructuredList(args.LinkContainer, extractors),
+		cache:     args.UseCache,
 	}
 
 	return scraper.scrape(ctx)
 }
 
 func (s *articlesListingScraper) scrape(ctx context.Context) ([]*core.ArticleLink, error) {
-	body, _, err := makeRequest(s.url)
+	body, _, err := makeRequest(s.cache, s.url)
 	if err != nil {
 		return nil, err
 	}

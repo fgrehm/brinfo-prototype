@@ -12,16 +12,14 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-var UseCache = true
-
 func loggerFromContext(ctx context.Context) log.Interface {
 	return log.FromContext(ctx)
 }
 
-func doScrapeArticle(ctx context.Context, url string, cs *ContentSource, scraper ArticleScraper) (*ScrapedArticleData, error) {
+func doScrapeArticle(ctx context.Context, cache bool, url string, cs *ContentSource, scraper ArticleScraper) (*ScrapedArticleData, error) {
 	log := loggerFromContext(ctx)
 
-	body, contentType, err := makeRequest(url)
+	body, contentType, err := makeRequest(cache, url)
 	if err != nil {
 		return nil, err
 	}
@@ -60,13 +58,13 @@ func validateContentSourceForScraping(cs *ContentSource, url string) error {
 	return nil
 }
 
-func makeRequest(url string) ([]byte, string, error) {
+func makeRequest(cache bool, url string) ([]byte, string, error) {
 	opts := []colly.CollectorOption{
-		colly.UserAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"),
+		colly.UserAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0"),
 	}
 
-	if UseCache {
-		log.Debug("Using cache")
+	if cache {
+		log.Info("Using cache")
 		opts = append(opts, colly.CacheDir("./.brinfo-cache/"))
 	}
 	c := colly.NewCollector(opts...)

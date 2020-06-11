@@ -33,6 +33,7 @@ var scrapeArticlesListingCmd = &cobra.Command{
 			URLExtractor:         scrapeArticlesListingFlags.urlExtractor,
 			PublishedAtExtractor: scrapeArticlesListingFlags.publishedAtExtractor,
 			ImageURLExtractor:    scrapeArticlesListingFlags.imageURLExtractor,
+			UseCache:             cfgCache,
 		})
 		if err != nil {
 			panic(err)

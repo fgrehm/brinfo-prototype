@@ -22,8 +22,8 @@ var inspectArticleCmd = &cobra.Command{
 		}
 
 		logger := log.FromContext(cmd.Context())
-		logger.Infof("Inspecting %s", urlToInspect)
 		data, err := op.InspectArticle(cmd.Context(), op.InspectArticleInput{
+			UseCache:          cfgCache,
 			Url:               urlToInspect.String(),
 			ContentSourceRepo: repo,
 			MergeWith:         mergeWithFlag,

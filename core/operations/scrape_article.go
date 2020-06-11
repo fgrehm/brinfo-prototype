@@ -8,6 +8,7 @@ import (
 )
 
 type ScrapeArticleInput struct {
+	UseCache      bool
 	Repo          ContentSourceRepo
 	ContentSource *ContentSource
 	Url           string
@@ -15,9 +16,10 @@ type ScrapeArticleInput struct {
 
 func ScrapeArticle(ctx context.Context, input ScrapeArticleInput) (*ScrapedArticleData, error) {
 	var (
-		url  = input.Url
-		cs   = input.ContentSource
-		repo = input.Repo
+		url   = input.Url
+		cs    = input.ContentSource
+		repo  = input.Repo
+		cache = input.UseCache
 
 		err error
 	)
@@ -37,7 +39,7 @@ func ScrapeArticle(ctx context.Context, input ScrapeArticleInput) (*ScrapedArtic
 		return nil, err
 	}
 
-	data, err := doScrapeArticle(ctx, url, cs, cs.ArticleScraper)
+	data, err := doScrapeArticle(ctx, cache, url, cs, cs.ArticleScraper)
 	if err != nil {
 		return nil, err
 	}

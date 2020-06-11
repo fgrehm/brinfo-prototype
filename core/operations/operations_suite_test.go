@@ -7,14 +7,12 @@ import (
 	"testing"
 
 	. "github.com/fgrehm/brinfo/core"
-	op "github.com/fgrehm/brinfo/core/operations"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 func TestOperations(t *testing.T) {
-	op.UseCache = false
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Operations Suite")
 }
