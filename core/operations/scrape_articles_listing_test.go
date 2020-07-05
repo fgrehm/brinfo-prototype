@@ -7,6 +7,8 @@ import (
 	. "github.com/fgrehm/brinfo/core"
 	. "github.com/fgrehm/brinfo/core/operations"
 
+	"github.com/fgrehm/brinfo/core/testutils"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -14,7 +16,7 @@ import (
 var _ = Describe("ScrapeArticlesListing", func() {
 	var (
 		ctx context.Context
-		ts  *testServer
+		ts  *testutils.Server
 	)
 
 	brLoc, err := time.LoadLocation("America/Sao_Paulo")
@@ -24,7 +26,7 @@ var _ = Describe("ScrapeArticlesListing", func() {
 
 	BeforeEach(func() {
 		ctx = context.Background()
-		ts = newTestServer()
+		ts = testutils.NewTestServer()
 	})
 
 	AfterEach(func() {
@@ -32,9 +34,9 @@ var _ = Describe("ScrapeArticlesListing", func() {
 	})
 
 	It("fetches URLs based on a selector", func() {
-		ts.articles = []*testArticle{
-			{url: ts.URL() + "/first-article"},
-			{url: ts.URL() + "/second-article"},
+		ts.Articles = []*testutils.Article{
+			{URL: ts.URL() + "/first-article"},
+			{URL: ts.URL() + "/second-article"},
 		}
 
 		result, err := ScrapeArticlesListing(ctx, ScrapeArticlesListingArgs{
@@ -50,9 +52,9 @@ var _ = Describe("ScrapeArticlesListing", func() {
 	})
 
 	It("fixes relative URLs", func() {
-		ts.articles = []*testArticle{
-			{url: "/articles/first-article"},
-			{url: "second-article"},
+		ts.Articles = []*testutils.Article{
+			{URL: "/articles/first-article"},
+			{URL: "second-article"},
 		}
 
 		result, err := ScrapeArticlesListing(ctx, ScrapeArticlesListingArgs{
@@ -68,13 +70,13 @@ var _ = Describe("ScrapeArticlesListing", func() {
 	})
 
 	It("supports extraction of article metadata", func() {
-		ts.articles = []*testArticle{
-			{url: "first-article", imageURL: "/img.png"},
-			{url: "second-article", publishedAt: "08/06/2020 23:11"},
+		ts.Articles = []*testutils.Article{
+			{URL: "first-article", ImageURL: "/img.png"},
+			{URL: "second-article", PublishedAt: "08/06/2020 23:11"},
 		}
 
 		sampleDate := time.Date(2020, 6, 8, 23, 11, 0, 0, brLoc)
-		sampleImg := ts.URL() + ts.articles[0].imageURL
+		sampleImg := ts.URL() + ts.Articles[0].ImageURL
 
 		result, err := ScrapeArticlesListing(ctx, ScrapeArticlesListingArgs{
 			URL:                  ts.URL() + "/articles",

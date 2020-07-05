@@ -1,7 +1,9 @@
-package inmemory_test
+package testutils_test
 
 import (
 	"testing"
+
+	_ "github.com/fgrehm/brinfo/core/testutils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -9,5 +11,5 @@ import (
 
 func TestCore(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "In Memory Storage suite")
+	RunSpecs(t, "testutils Suite")
 }

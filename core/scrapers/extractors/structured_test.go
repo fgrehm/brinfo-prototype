@@ -9,13 +9,12 @@ import (
 
 var _ = Describe("Structured", func() {
 	It("works", func() {
-		extractor := Structured("head", map[string]Extractor{
+		e := Structured("head", map[string]Extractor{
 			"title":       Text("title", false),
 			"description": Attribute("meta[name=description]", "content"),
 		})
 
-		val, err := extractor.Extract(Fragment(`
-		<html>
+		val, err := extract(e, `<html>
 			<head>
 				<title>page title</title>
 				<meta name="description" content="some description">
@@ -25,7 +24,7 @@ var _ = Describe("Structured", func() {
 				<title>AAA</title>
 				<meta name="description" content="FFF">
 			</body>
-		</html>`))
+		</html>`)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(val).To(Equal(map[string]ExtractorResult{
@@ -33,20 +32,20 @@ var _ = Describe("Structured", func() {
 			"description": "some description",
 		}))
 
-		_, err = extractor.Extract(Fragment(`<bad example=true>`))
+		_, err = extract(e, `<bad example=true>`)
 		Expect(err).To(HaveOccurred())
 
-		_, err = extractor.Extract(Fragment(`<head><title>AA</title></head>`))
+		_, err = extract(e, `<head><title>AA</title></head>`)
 		Expect(err).To(HaveOccurred())
 	})
 
 	It("works as a wrapper for multiple elements", func() {
-		extractor := StructuredList("li", map[string]Extractor{
+		e := StructuredList("li", map[string]Extractor{
 			"title":       Text("h2", false),
 			"description": Text("p", false),
 		})
 
-		val, err := extractor.Extract(Fragment(`
+		val, err := extract(e, `
 		<ul>
 			<li>
 				<h2>Title 1</h2>
@@ -58,7 +57,7 @@ var _ = Describe("Structured", func() {
 				<p>Desc 2</p>
 				<em>bla 2</em>
 			</li>
-		</ul>`))
+		</ul>`)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(val).To(Equal([]map[string]ExtractorResult{
@@ -66,10 +65,10 @@ var _ = Describe("Structured", func() {
 			{"title": "Title 2", "description": "Desc 2"},
 		}))
 
-		_, err = extractor.Extract(Fragment(`<bad example=true>`))
+		_, err = extract(e, `<bad example=true>`)
 		Expect(err).To(HaveOccurred())
 
-		_, err = extractor.Extract(Fragment(`<head><title>AA</title></head>`))
+		_, err = extract(e, `<head><title>AA</title></head>`)
 		Expect(err).To(HaveOccurred())
 	})
 })

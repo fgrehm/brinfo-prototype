@@ -16,9 +16,9 @@ var _ = Describe("PublishedDates", func() {
 	}
 
 	Context("meta[article:*]", func() {
-		It("extracts published_at from article:published_time", func() {
+		It("extracts publishedAt from article:published_time", func() {
 			e := PublishedDates()
-			val, err := e.Extract(Fragment(`<head><meta property="article:published_time" content="2010-02-21 15:50"></head> `))
+			val, err := extract(e, `<head><meta property="article:published_time" content="2010-02-21 15:50"></head> `)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).NotTo(BeNil())
 
@@ -26,14 +26,14 @@ var _ = Describe("PublishedDates", func() {
 			if !ok {
 				panic("Returned something weird")
 			}
-			Expect(data["published_at"]).NotTo(BeNil())
-			Expect(*data["published_at"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
-			Expect(data["modified_at"]).To(BeNil())
+			Expect(data["publishedAt"]).NotTo(BeNil())
+			Expect(*data["publishedAt"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
+			Expect(data["modifiedAt"]).To(BeNil())
 		})
 
 		It("extracts updated_at from article:modified_time", func() {
 			e := PublishedDates()
-			val, err := e.Extract(Fragment(`<head><meta property="article:modified_time" content="2010-02-21 15:50"></head> `))
+			val, err := extract(e, `<head><meta property="article:modified_time" content="2010-02-21 15:50"></head> `)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).NotTo(BeNil())
 
@@ -41,14 +41,14 @@ var _ = Describe("PublishedDates", func() {
 			if !ok {
 				panic("Returned something weird")
 			}
-			Expect(data["modified_at"]).NotTo(BeNil())
-			Expect(*data["modified_at"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
-			Expect(data["published_at"]).To(BeNil())
+			Expect(data["modifiedAt"]).NotTo(BeNil())
+			Expect(*data["modifiedAt"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
+			Expect(data["publishedAt"]).To(BeNil())
 		})
 
 		It("is restricted to elements within <head>", func() {
 			e := PublishedDates()
-			val, err := e.Extract(Fragment(`<body><meta property="article:published_time" content="2010-02-21 15:50"></body> `))
+			val, err := extract(e, `<body><meta property="article:published_time" content="2010-02-21 15:50"></body> `)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).To(BeNil())
 		})
@@ -56,11 +56,11 @@ var _ = Describe("PublishedDates", func() {
 
 	Context("article time", func() {
 		Context("from <article><time>", func() {
-			It("extracts published_at from pubdate", func() {
+			It("extracts publishedAt from pubdate", func() {
 				e := PublishedDates()
 
-				val, err := e.Extract(Fragment(`<article>
-					<time pubdate="2010-02-21 15:50:00 -0300">foobar</time></article>`))
+				val, err := extract(e, `<article>
+					<time pubdate="2010-02-21 15:50:00 -0300">foobar</time></article>`)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(val).NotTo(BeNil())
 
@@ -68,16 +68,16 @@ var _ = Describe("PublishedDates", func() {
 				if !ok {
 					panic("Returned something weird")
 				}
-				Expect(data["published_at"]).NotTo(BeNil())
-				Expect(*data["published_at"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
-				Expect(data["modified_at"]).To(BeNil())
+				Expect(data["publishedAt"]).NotTo(BeNil())
+				Expect(*data["publishedAt"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
+				Expect(data["modifiedAt"]).To(BeNil())
 			})
 
-			It("extracts published_at from datetime when empty pubdate", func() {
+			It("extracts publishedAt from datetime when empty pubdate", func() {
 				e := PublishedDates()
 
-				val, err := e.Extract(Fragment(`<article>
-					<time pubdate="" datetime="2010-02-21 15:50:00 -0300">foobar</time></article>`))
+				val, err := extract(e, `<article>
+					<time pubdate="" datetime="2010-02-21 15:50:00 -0300">foobar</time></article>`)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(val).NotTo(BeNil())
 
@@ -85,26 +85,26 @@ var _ = Describe("PublishedDates", func() {
 				if !ok {
 					panic("Returned something weird")
 				}
-				Expect(data["published_at"]).NotTo(BeNil())
-				Expect(*data["published_at"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
-				Expect(data["modified_at"]).To(BeNil())
+				Expect(data["publishedAt"]).NotTo(BeNil())
+				Expect(*data["publishedAt"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
+				Expect(data["modifiedAt"]).To(BeNil())
 			})
 
 			It("is restricted to elements with proper attrs", func() {
 				e := PublishedDates()
 
-				val, err := e.Extract(Fragment(`<article>
-					<time pubdates="" datetime="2010-02-21 15:50:00 -0300">foobar</time></article>`))
+				val, err := extract(e, `<article>
+					<time pubdates="" datetime="2010-02-21 15:50:00 -0300">foobar</time></article>`)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(val).To(BeNil())
 
-				val, err = e.Extract(Fragment(`<article>
-					<time pubdate="" datetimes="2010-02-21 15:50:00 -0300">foobar</time></article>`))
+				val, err = extract(e, `<article>
+					<time pubdate="" datetimes="2010-02-21 15:50:00 -0300">foobar</time></article>`)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(val).To(BeNil())
 
-				val, err = e.Extract(Fragment(`<article>
-					<time pubdates="2010-02-21 15:50:00 -0300" datetime="">foobar</time></article>`))
+				val, err = extract(e, `<article>
+					<time pubdates="2010-02-21 15:50:00 -0300" datetime="">foobar</time></article>`)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(val).To(BeNil())
 			})
@@ -112,17 +112,17 @@ var _ = Describe("PublishedDates", func() {
 	})
 
 	Context("rnews", func() {
-		It("extracts published_at from rnews:datePublished", func() {
+		It("extracts publishedAt from rnews:datePublished", func() {
 			e := PublishedDates()
 
-			val, err := e.Extract(Fragment(`<body>
+			val, err := extract(e, `<body>
 				<article vocab="http://schema.org/" typeof="Article" prefix="rnews: http://iptc.org/std/rNews/2011-10-07#">
 					<span class="documentPublished">
 						<span>publicado</span>:
 						<span property="rnews:datePublished">21/02/2010 15h50</span>,
 					</span>
 				</article>
-			</body>`))
+			</body>`)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).NotTo(BeNil())
 
@@ -130,22 +130,22 @@ var _ = Describe("PublishedDates", func() {
 			if !ok {
 				panic("Returned something weird")
 			}
-			Expect(data["published_at"]).NotTo(BeNil())
-			Expect(*data["published_at"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
-			Expect(data["modified_at"]).To(BeNil())
+			Expect(data["publishedAt"]).NotTo(BeNil())
+			Expect(*data["publishedAt"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
+			Expect(data["modifiedAt"]).To(BeNil())
 		})
 
 		It("extracts updated_at from rnews:dateModified", func() {
 			e := PublishedDates()
 
-			val, err := e.Extract(Fragment(`<body>
+			val, err := extract(e, `<body>
 				<div vocab="http://schema.org/" typeof="Article" prefix="rnews: http://iptc.org/std/rNews/2011-10-07#">
 					<span class="documentPublished">
 						<span>atualizado</span>:
 						<span property="rnews:dateModified"> 21/02/2010 15h50 </span>,
 					</span>
 				</div>
-			</body>`))
+			</body>`)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).NotTo(BeNil())
 
@@ -153,53 +153,53 @@ var _ = Describe("PublishedDates", func() {
 			if !ok {
 				panic("Returned something weird")
 			}
-			Expect(data["modified_at"]).NotTo(BeNil())
-			Expect(*data["modified_at"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
-			Expect(data["published_at"]).To(BeNil())
+			Expect(data["modifiedAt"]).NotTo(BeNil())
+			Expect(*data["modifiedAt"]).To(Equal(time.Date(2010, 2, 21, 15, 50, 0, 0, brLoc)))
+			Expect(data["publishedAt"]).To(BeNil())
 		})
 
 		It("is restricted to elements with proper attrs", func() {
 			e := PublishedDates()
 
-			val, err := e.Extract(Fragment(`<body>
+			val, err := extract(e, `<body>
 				<div vocab="http://schemas.org/" typeof="Article" prefix="rnews: http://iptc.org/std/rNews/2011-10-07#">
 					<span property="rsnews:dateModified">21/02/2010 15h50</span>
-				</div></body>`))
+				</div></body>`)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).To(BeNil())
 
-			val, err = e.Extract(Fragment(`<body>
+			val, err = extract(e, `<body>
 				<div vocab="http://schema.org/" typeof="Articles" prefix="rnews: http://iptc.org/std/rNews/2011-10-07#">
 					<span property="rnews:dasteModified">21/02/2010 15h50</span>
-				</div></body>`))
+				</div></body>`)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).To(BeNil())
 
-			val, err = e.Extract(Fragment(`<body>
+			val, err = extract(e, `<body>
 				<div vocab="http://schema.org/" typeof="Article" prefix="rsnews: http://iptc.org/std/rNews/2011-10-07#">
 					<span property="rnews:dateModified">21/02/2010 15h50</span>
-				</div></body>`))
+				</div></body>`)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).To(BeNil())
 
-			val, err = e.Extract(Fragment(`<body>
+			val, err = extract(e, `<body>
 				<div vocab="http://schema.org/" typeof="Article" prefix="rnews: http://iptc.org/std/rNews/2011-10-07#">
 					<span other="rnews:dateModified">21/02/2010 15h50</span>
-				</div></body>`))
+				</div></body>`)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).To(BeNil())
 
-			val, err = e.Extract(Fragment(`<body>
+			val, err = extract(e, `<body>
 				<div vocab="http://schema.org/" typeof="Article" prefix="rnews: http://iptc.org/std/rNews/2011-10-07#">
 					<span property="rnesws:dateModified">21/02/2010 15h50</span>
-				</div></body>`))
+				</div></body>`)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).To(BeNil())
 
-			val, err = e.Extract(Fragment(`<body>
+			val, err = extract(e, `<body>
 				<div vocab="http://schema.org/" typeof="Article" prefix="rnews: http://iptc.org/std/rNews/2011-10-07#">
 					<span property="rnews:datePodified">21/02/2010 15h50</span>
-				</div></body>`))
+				</div></body>`)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).To(BeNil())
 		})

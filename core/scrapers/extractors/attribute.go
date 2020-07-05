@@ -32,8 +32,8 @@ func OptAttribute(selector, attr string) Extractor {
 	}
 }
 
-func (e *attrExtractor) Extract(root *goquery.Selection) (ExtractorResult, error) {
-	sel := root.Find(e.selector)
+func (e *attrExtractor) Extract(args ExtractorArgs) (ExtractorResult, error) {
+	sel := args.Root.Find(e.selector)
 	if sel.Length() == 0 {
 		if e.required {
 			return nil, fmt.Errorf("'%s' not found", e.selector)
@@ -52,7 +52,7 @@ func (e *attrExtractor) Extract(root *goquery.Selection) (ExtractorResult, error
 			if !found && e.required {
 				return nil, fmt.Errorf("Attribute '%s' for '%s' not found", e.attr, e.selector)
 			}
-			// Fail if == "" && required
+			// TODO: Fail if == "" && required
 			if attr == "" {
 				return nil, nil
 			}

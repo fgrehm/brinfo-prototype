@@ -2,8 +2,6 @@ package extractors
 
 import (
 	"time"
-
-	"github.com/PuerkitoBio/goquery"
 )
 
 type publishedDatesExtractor struct {
@@ -24,8 +22,8 @@ func PublishedDates() Extractor {
 	return &publishedDatesExtractor{brLoc: *brLoc}
 }
 
-func (e *publishedDatesExtractor) Extract(root *goquery.Selection) (ExtractorResult, error) {
-	result, err := e.extractWithFallbacks(root)
+func (e *publishedDatesExtractor) Extract(args ExtractorArgs) (ExtractorResult, error) {
+	result, err := e.extractWithFallbacks(args)
 	if err != nil {
 		return nil, err
 	}
@@ -35,13 +33,13 @@ func (e *publishedDatesExtractor) Extract(root *goquery.Selection) (ExtractorRes
 	}
 
 	return map[string]*time.Time{
-		"published_at": result.publishedAt,
-		"modified_at":  result.modifiedAt,
+		"publishedAt": result.publishedAt,
+		"modifiedAt":  result.modifiedAt,
 	}, nil
 }
 
-func (e *publishedDatesExtractor) extractWithFallbacks(root *goquery.Selection) (*extractedDates, error) {
-	result, err := e.extractFromMeta(root)
+func (e *publishedDatesExtractor) extractWithFallbacks(args ExtractorArgs) (*extractedDates, error) {
+	result, err := e.extractFromMeta(args)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +47,7 @@ func (e *publishedDatesExtractor) extractWithFallbacks(root *goquery.Selection) 
 		return result, nil
 	}
 
-	result, err = e.extractFromRNews(root)
+	result, err = e.extractFromRNews(args)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +55,7 @@ func (e *publishedDatesExtractor) extractWithFallbacks(root *goquery.Selection) 
 		return result, nil
 	}
 
-	result, err = e.extractFromArticleTime(root)
+	result, err = e.extractFromArticleTime(args)
 	if err != nil {
 		return nil, err
 	}
@@ -68,29 +66,29 @@ func (e *publishedDatesExtractor) extractWithFallbacks(root *goquery.Selection) 
 	return nil, nil
 }
 
-func (e *publishedDatesExtractor) extractFromMeta(root *goquery.Selection) (*extractedDates, error) {
+func (e *publishedDatesExtractor) extractFromMeta(args ExtractorArgs) (*extractedDates, error) {
 	extractor := Structured("head", map[string]Extractor{
 		"published_at": OptTimeAttribute(`meta[property="article:published_time"]`, "content"),
 		"modified_at":  OptTimeAttribute(`meta[property="article:modified_time"]`, "content"),
 	})
-	return e.handleExtractedResult(extractor.Extract(root))
+	return e.handleExtractedResult(extractor.Extract(args))
 }
 
-func (e *publishedDatesExtractor) extractFromRNews(root *goquery.Selection) (*extractedDates, error) {
+func (e *publishedDatesExtractor) extractFromRNews(args ExtractorArgs) (*extractedDates, error) {
 	extractor := Structured(`body [vocab*="schema.org"][typeof=Article][prefix*=rnews]`, map[string]Extractor{
 		"published_at": OptTimeText(`[property="rnews:datePublished"]`),
 		"modified_at":  OptTimeText(`[property="rnews:dateModified"]`),
 	})
 
-	return e.handleExtractedResult(extractor.Extract(root))
+	return e.handleExtractedResult(extractor.Extract(args))
 }
 
-func (e *publishedDatesExtractor) extractFromArticleTime(root *goquery.Selection) (*extractedDates, error) {
+func (e *publishedDatesExtractor) extractFromArticleTime(args ExtractorArgs) (*extractedDates, error) {
 	extractor := Structured(`article`, map[string]Extractor{
 		"published_at": OptTimeAttribute(`time`, "pubdate"),
 	})
 
-	dates, err := e.handleExtractedResult(extractor.Extract(root))
+	dates, err := e.handleExtractedResult(extractor.Extract(args))
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +99,7 @@ func (e *publishedDatesExtractor) extractFromArticleTime(root *goquery.Selection
 	extractor = Structured(`article`, map[string]Extractor{
 		"published_at": OptTimeAttribute(`time[pubdate]`, "datetime"),
 	})
-	return e.handleExtractedResult(extractor.Extract(root))
+	return e.handleExtractedResult(extractor.Extract(args))
 }
 
 func (e *publishedDatesExtractor) handleExtractedResult(extracted ExtractorResult, err error) (*extractedDates, error) {

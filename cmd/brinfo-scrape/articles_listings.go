@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ var scrapeArticlesListingFlags = struct {
 }{}
 
 var scrapeArticlesListingCmd = &cobra.Command{
-	Use:   "scrape-articles-listing [URL]",
+	Use:   "articles-listing [URL]",
 	Short: "Extract a list of article links and metadata from a page that has a list of articles",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -50,7 +50,6 @@ var scrapeArticlesListingCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(scrapeArticlesListingCmd)
 	scrapeArticlesListingCmd.Flags().StringVarP(&scrapeArticlesListingFlags.linkContainer, "link-container", "l", "", "CSS selector for the element that wraps links to scrape (required)")
 	scrapeArticlesListingCmd.MarkFlagRequired("link-container")
 	scrapeArticlesListingCmd.Flags().StringVarP(&scrapeArticlesListingFlags.urlExtractor, "url-extractor", "u", "a[href] | href", "CSS selector for the actual link, nested under the elements wrapped by the container")

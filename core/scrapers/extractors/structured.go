@@ -32,8 +32,8 @@ func StructuredList(selector string, extractors map[string]Extractor) Extractor 
 	return &structuredExtractor{selector, extractors, true}
 }
 
-func (e *structuredExtractor) Extract(sel *goquery.Selection) (ExtractorResult, error) {
-	root := sel.Find(e.selector)
+func (e *structuredExtractor) Extract(args ExtractorArgs) (ExtractorResult, error) {
+	root := args.Root.Find(e.selector)
 
 	if root.Length() == 0 {
 		return nil, fmt.Errorf("'%s' not found", e.selector)
@@ -41,11 +41,11 @@ func (e *structuredExtractor) Extract(sel *goquery.Selection) (ExtractorResult, 
 
 	if !e.multiple {
 		if root.Length() > 1 {
-			return nil, fmt.Errorf("Multiple '%s' found (%d)", e.selector, sel.Length())
+			return nil, fmt.Errorf("Multiple '%s' found (%d)", e.selector, args.Root.Length())
 		}
 
 		if root.Length() == 1 {
-			return e.extractOne(root)
+			return e.extractOne(args.WithRoot(root))
 		}
 	}
 
@@ -57,7 +57,7 @@ func (e *structuredExtractor) Extract(sel *goquery.Selection) (ExtractorResult, 
 			return
 		}
 
-		value, innerErr := e.extractOne(s)
+		value, innerErr := e.extractOne(args.WithRoot(s))
 		if innerErr != nil {
 			err = innerErr
 			return
@@ -73,10 +73,10 @@ func (e *structuredExtractor) Extract(sel *goquery.Selection) (ExtractorResult, 
 	return result, nil
 }
 
-func (e *structuredExtractor) extractOne(sel *goquery.Selection) (map[string]ExtractorResult, error) {
+func (e *structuredExtractor) extractOne(args ExtractorArgs) (map[string]ExtractorResult, error) {
 	ret := map[string]ExtractorResult{}
 	for fieldName, extractor := range e.configs {
-		result, err := extractor.Extract(sel)
+		result, err := extractor.Extract(args)
 		if err != nil {
 			// errors.WithStack
 			return nil, fmt.Errorf("within '%s' > %s", e.selector, err)

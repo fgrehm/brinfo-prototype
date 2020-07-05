@@ -2,11 +2,10 @@ package operations
 
 import (
 	"context"
-	"fmt"
 	neturl "net/url"
 	"time"
 
-	. "github.com/fgrehm/brinfo/core"
+	// . "github.com/fgrehm/brinfo/core"
 
 	"github.com/apex/log"
 	"github.com/gocolly/colly/v2"
@@ -16,48 +15,10 @@ func loggerFromContext(ctx context.Context) log.Interface {
 	return log.FromContext(ctx)
 }
 
-func doScrapeArticle(ctx context.Context, cache bool, url string, cs *ContentSource, scraper ArticleScraper) (*ScrapedArticleData, error) {
-	log := loggerFromContext(ctx)
+type realClock struct{}
 
-	body, contentType, err := makeRequest(cache, url)
-	if err != nil {
-		return nil, err
-	}
-
-	if cs != nil && cs.ForceContentType != "" {
-		log.Debugf("Forcing content type to %s", cs.ForceContentType)
-		contentType = cs.ForceContentType
-	}
-
-	data, err := InspectBytes(ctx, InspectBytesArgs{
-		HTML:           body,
-		URL:            url,
-		ContentType:    contentType,
-		ArticleScraper: scraper,
-	})
-	if cs != nil {
-		data.SourceID = cs.ID
-	}
-	return data, nil
-}
-
-func validateContentSourceForScraping(cs *ContentSource, url string) error {
-	if cs.Host == "" {
-		return fmt.Errorf("ContentSource does not have a host set %+v", cs)
-	}
-	if cs.ArticleScraper == nil {
-		return fmt.Errorf("Article scraper not assigned for ContentSource '%+v'", cs)
-	}
-
-	host, err := extractHost(url)
-	if err != nil {
-		return err
-	}
-	if host != cs.Host {
-		return fmt.Errorf("URL host '%s' does not match ContentSource host '%s'", host, cs.Host)
-	}
-
-	return nil
+func (*realClock) Now() time.Time {
+	return time.Now()
 }
 
 func makeRequest(cache bool, url string) ([]byte, string, error) {
@@ -97,22 +58,6 @@ func makeRequest(cache bool, url string) ([]byte, string, error) {
 	}
 
 	return body, contentType, nil
-}
-
-func mustLookupContentSourceForUrl(ctx context.Context, repo ContentSourceRepo, url string) (*ContentSource, error) {
-	host, err := extractHost(url)
-	if err != nil {
-		panic(err)
-	}
-	return repo.FindByHost(ctx, host)
-}
-
-func lookupContentSourceForUrl(ctx context.Context, repo ContentSourceRepo, url string) (*ContentSource, error) {
-	host, err := extractHost(url)
-	if err != nil {
-		return nil, err
-	}
-	return repo.GetByHost(ctx, host)
 }
 
 func extractHost(url string) (string, error) {

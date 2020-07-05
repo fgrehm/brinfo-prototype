@@ -29,8 +29,8 @@ func OptText(selector string, multiple bool) Extractor {
 	}
 }
 
-func (e *textExtractor) Extract(root *goquery.Selection) (ExtractorResult, error) {
-	sel := root.Find(e.selector)
+func (e *textExtractor) Extract(args ExtractorArgs) (ExtractorResult, error) {
+	sel := args.Root.Find(e.selector)
 
 	if sel.Length() == 0 {
 		if e.required {
@@ -54,13 +54,13 @@ func (e *textExtractor) Extract(root *goquery.Selection) (ExtractorResult, error
 					return nil, nil
 				}
 			}
-			return strings.Trim(text, " "), nil
+			return strings.TrimSpace(text), nil
 		}
 	}
 
 	var err error
 	ret := sel.Map(func(idx int, s *goquery.Selection) string {
-		return strings.Trim(s.Text(), " ")
+		return strings.TrimSpace(s.Text())
 	})
 
 	if err != nil {

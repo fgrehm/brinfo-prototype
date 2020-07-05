@@ -13,6 +13,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+// TODO: Move some of the logic in this file over to an abstraction on the scrapers package
+
 type ScrapeArticlesListingArgs struct {
 	UseCache             bool
 	URL                  string
@@ -87,7 +89,11 @@ func (s *articlesListingScraper) scrape(ctx context.Context) ([]*core.ArticleLin
 		return nil, err
 	}
 
-	data, err := s.extractor.Extract(doc.Selection)
+	data, err := s.extractor.Extract(xt.ExtractorArgs{
+		Context: ctx,
+		URL:     s.url,
+		Root:    doc.Selection,
+	})
 	if err != nil {
 		return nil, err
 	}

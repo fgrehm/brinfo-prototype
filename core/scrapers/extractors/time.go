@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/araddon/dateparse"
 )
 
@@ -57,8 +56,8 @@ func OptTimeAttribute(selector, attr string) Extractor {
 	}
 }
 
-func (e *timeAttrExtractor) Extract(root *goquery.Selection) (ExtractorResult, error) {
-	res, err := e.attrExtractor.Extract(root)
+func (e *timeAttrExtractor) Extract(args ExtractorArgs) (ExtractorResult, error) {
+	res, err := e.attrExtractor.Extract(args)
 	if err != nil {
 		return nil, err
 	}
@@ -109,8 +108,8 @@ func OptTimeText(selector string) Extractor {
 	}
 }
 
-func (e *timeTextExtractor) Extract(root *goquery.Selection) (ExtractorResult, error) {
-	res, err := e.textExtractor.Extract(root)
+func (e *timeTextExtractor) Extract(args ExtractorArgs) (ExtractorResult, error) {
+	res, err := e.textExtractor.Extract(args)
 	if err != nil {
 		return nil, err
 	}
