@@ -14,6 +14,7 @@ var (
 	mergeWithFlag        string
 	sourceGUIDFlag       string
 	customExtractorsFlag string
+	extraDataFlag        string
 )
 
 // rootCmd represents the base command when called without any subcommands

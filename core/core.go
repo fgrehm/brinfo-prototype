@@ -82,14 +82,34 @@ func (d *ArticleData) CollectValues(other *ArticleData) {
 	}
 }
 
-func (d *ArticleData) ValidForIngestion() bool {
-	valid := d.URL != ""
-	valid = valid && d.URLHash != ""
-	valid = valid && d.Title != ""
-	valid = valid && d.FullText != ""
-	valid = valid && d.FullTextHash != ""
-	valid = valid && d.PublishedAt != nil && !d.PublishedAt.IsZero()
-	valid = valid && (d.ModifiedAt == nil || !d.ModifiedAt.IsZero())
-	valid = valid && !d.FoundAt.IsZero()
-	return valid
+func (d *ArticleData) ValidForIngestion() (bool, []string) {
+	errors := []string{}
+	// now := time.Now()
+
+	if d.URL == "" {
+		errors = append(errors, "missing url")
+	}
+	if d.URLHash == "" {
+		errors = append(errors, "missing url_hash")
+	}
+	if d.Title == "" {
+		errors = append(errors, "missing title")
+	}
+	if d.FullText == "" {
+		errors = append(errors, "missing full_text")
+	}
+	if d.FullTextHash == "" {
+		errors = append(errors, "missing full_text_hash")
+	}
+	if d.PublishedAt == nil || d.PublishedAt.IsZero() {
+		errors = append(errors, "missing published_at")
+	}
+	if d.ModifiedAt != nil && d.ModifiedAt.IsZero() {
+		errors = append(errors, "updated_at in the future")
+	}
+	if d.FoundAt.IsZero() {
+		errors = append(errors, "missing found_at")
+	}
+
+	return len(errors) == 0, errors
 }
