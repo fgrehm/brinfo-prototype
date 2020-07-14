@@ -50,6 +50,12 @@ var _ = Describe("Date extractors", func() {
 			Expect(val).NotTo(BeNil())
 			Expect(val).To(Equal(time.Date(2020, 2, 21, 16, 26, 0, 0, brLoc)))
 
+			e = TimeText("p")
+			val, err = extract(e, `<p>21/fevereiro/2020 4:26 pm | <span>Geral</span></p>`)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(val).NotTo(BeNil())
+			Expect(val).To(Equal(time.Date(2020, 2, 21, 16, 26, 0, 0, brLoc)))
+
 			val, err = extract(e, `<p><strong>Publicação</strong>: 22 de março dE 2020 àS 16:22 | <span>Geral</span></p>`)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).NotTo(BeNil())
