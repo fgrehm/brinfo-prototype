@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"encoding/json"
+	"net/url"
 	"time"
 )
 
@@ -107,8 +108,26 @@ func (d *ArticleData) ValidForIngestion() (bool, []string) {
 	if d.ModifiedAt != nil && d.ModifiedAt.IsZero() {
 		errors = append(errors, "updated_at in the future")
 	}
+
+	now := time.Now()
+	if d.PublishedAt != nil && d.PublishedAt.Sub(now) >= (time.Hour*12) {
+		errors = append(errors, "published_at in the future")
+	}
+	if d.ModifiedAt != nil && d.ModifiedAt.Sub(now) >= (time.Hour*12) {
+		errors = append(errors, "updated_at in the future")
+	}
+
 	if d.FoundAt.IsZero() {
 		errors = append(errors, "missing found_at")
+	}
+	if d.ImageURL != "" {
+		u, err := url.Parse(d.ImageURL)
+		if err != nil {
+			panic(err)
+		}
+		if u.Host == "" {
+			errors = append(errors, "image_url is not absolute")
+		}
 	}
 
 	return len(errors) == 0, errors
