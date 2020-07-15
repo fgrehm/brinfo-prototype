@@ -30,7 +30,7 @@ jobs:
     name: Test gorelease
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: goreleaser/goreleaser-action@v2
-        with:
-          args: release --snapshot --rm-dist
+    - uses: actions/checkout@v2
+    - uses: goreleaser/goreleaser-action@v2
+      with:
+        args: release --snapshot --rm-dist
