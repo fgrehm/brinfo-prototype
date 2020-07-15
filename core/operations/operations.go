@@ -1,19 +1,11 @@
 package operations
 
 import (
-	"context"
-	neturl "net/url"
 	"time"
-
-	// . "github.com/fgrehm/brinfo/core"
 
 	"github.com/apex/log"
 	"github.com/gocolly/colly/v2"
 )
-
-func loggerFromContext(ctx context.Context) log.Interface {
-	return log.FromContext(ctx)
-}
 
 type realClock struct{}
 
@@ -58,12 +50,4 @@ func makeRequest(cache bool, url string) ([]byte, string, error) {
 	}
 
 	return body, contentType, nil
-}
-
-func extractHost(url string) (string, error) {
-	u, err := neturl.Parse(url)
-	if err != nil {
-		return "", err
-	}
-	return u.Host, nil
 }

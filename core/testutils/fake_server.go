@@ -43,7 +43,7 @@ func (s *Server) Close() {
 
 func (s *Server) listArticles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(`<!DOCTYPE html>
+	_, err := w.Write([]byte(`<!DOCTYPE html>
 <html>
 	<head>
 		<title>Articles</title>
@@ -55,6 +55,9 @@ func (s *Server) listArticles(w http.ResponseWriter, r *http.Request) {
 		</ul>
 	</body>
 </html>`))
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (s *Server) renderArticlesList() string {

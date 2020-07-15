@@ -32,7 +32,10 @@ func init() {
 	scrapeArticleCmd.Flags().StringVarP(&extraDataFlag, "extra-data", "e", "", "Extra JSON to merge with the scraped article data")
 	scrapeArticleCmd.Flags().StringVarP(&sourceGUIDFlag, "source-guid", "s", "", "A string that represents the JSON to merge with the scraped article data")
 	scrapeArticleCmd.Flags().StringVarP(&customExtractorsFlag, "custom-extractors", "", "", "A string that represents the JSON of custom extractors to use")
-	scrapeArticleCmd.MarkFlagRequired("source-guid")
+
+	if err := scrapeArticleCmd.MarkFlagRequired("source-guid"); err != nil {
+		panic(err)
+	}
 }
 
 type ArticleData struct {

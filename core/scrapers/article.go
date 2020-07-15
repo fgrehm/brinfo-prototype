@@ -88,6 +88,8 @@ func (s *articleScraper) Run(ctx context.Context, html []byte, url, httpContentT
 
 func (s *articleScraper) generateHash(text string) string {
 	algorithm := sha1.New()
-	algorithm.Write([]byte(text))
+	if _, err := algorithm.Write([]byte(text)); err != nil {
+		panic(err)
+	}
 	return hex.EncodeToString(algorithm.Sum(nil))
 }
