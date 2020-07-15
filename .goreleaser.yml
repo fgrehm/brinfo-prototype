@@ -1,3 +1,4 @@
+# NOTE: Regenerate install.sh if this changes
 before:
   hooks:
     - go generate ./...
@@ -10,6 +11,3 @@ builds:
     - amd64
 snapshot:
   name_template: "{{ .Tag }}-next"
-changelog:
-  # TODO: Enable this
-  skip: false
