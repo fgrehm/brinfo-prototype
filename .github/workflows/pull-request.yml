@@ -17,6 +17,9 @@ jobs:
         fetch-depth: 0
     - name: Build and test
       run: make build test
+    - uses: goreleaser/goreleaser-action@v2
+      with:
+        args: release --snapshot --rm-dist
 
   golangci:
     name: Lint
