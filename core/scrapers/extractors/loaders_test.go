@@ -25,7 +25,7 @@ var _ = Describe("Loaders", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(val).To(Equal("#foo"))
 
-				val, err = extract(e, `<p>other</p><div>Foo <a href="#foo">link</a></div><a href="#bla">foo</a>`)
+				_, err = extract(e, `<p>other</p><div>Foo <a href="#foo">link</a></div><a href="#bla">foo</a>`)
 				Expect(err).To(HaveOccurred())
 			})
 
@@ -54,7 +54,7 @@ var _ = Describe("Loaders", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(val).To(Equal("link"))
 
-				val, err = extract(e, `<p>other</p><div>Foo <a href="#foo">link</a></div><a href="#bla">foo</a>`)
+				_, err = extract(e, `<p>other</p><div>Foo <a href="#foo">link</a></div><a href="#bla">foo</a>`)
 				Expect(err).To(HaveOccurred())
 			})
 
@@ -83,7 +83,7 @@ var _ = Describe("Loaders", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(val).To(Equal(time.Date(2020, 3, 20, 18, 30, 0, 0, brLoc)))
 
-				val, err = extract(e, `<p>other</p><p>Foo <time pubdate="2020-03-20 18:30:00">whatever</time></p><a href="#bla">foo</a>`)
+				_, err = extract(e, `<p>other</p><p>Foo <time pubdate="2020-03-20 18:30:00">whatever</time></p><a href="#bla">foo</a>`)
 				Expect(err).To(HaveOccurred())
 			})
 
@@ -96,7 +96,7 @@ var _ = Describe("Loaders", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(val).To(Equal(time.Date(2020, 3, 20, 18, 30, 0, 0, brLoc)))
 
-				val, err = extract(e, `<p>other</p><p>Foo <time pubdate="2020-03-20 18:30:00">whatever</time></p><a href="#bla">foo</a>`)
+				_, err = extract(e, `<p>other</p><p>Foo <time pubdate="2020-03-20 18:30:00">whatever</time></p><a href="#bla">foo</a>`)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
@@ -112,7 +112,7 @@ var _ = Describe("Loaders", func() {
 				Expect(val).NotTo(BeNil())
 				Expect(val).To(Equal(time.Date(2020, 3, 20, 18, 30, 0, 0, brLoc)))
 
-				val, err = extract(e, `<p>other</p><div>Foo <em>20/03/2020 18:30</em></div><a href="#bla">foo</a>`)
+				_, err = extract(e, `<p>other</p><div>Foo <em>20/03/2020 18:30</em></div><a href="#bla">foo</a>`)
 				Expect(err).To(HaveOccurred())
 			})
 
@@ -143,11 +143,12 @@ var _ = Describe("Loaders", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(val).To(Equal(map[string]ExtractorResult{"title": "#foo"}))
 
-			val, err = extract(e[0], `<html><body><p>other</p><div>Foo <a href="#foo">link</a></div><a href="#bla">foo</a></body></html>`)
+			_, err = extract(e[0], `<html><body><p>other</p><div>Foo <a href="#foo">link</a></div><a href="#bla">foo</a></body></html>`)
 			Expect(err).To(HaveOccurred())
 		})
 
-		It("works when wrappers are specified", func() {
+		// Temporarily disabled while we make it deterministic, we can't rely on map keys ordering
+		XIt("works when wrappers are specified", func() {
 			e, err := FromJSON([]byte(`{"head": { "title": "title | text" }, "body": {"fullText": "#main | text"}}`))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(e).NotTo(BeNil())

@@ -113,7 +113,7 @@ func (e *htmlinfoExtractor) isGoodExcerpt(excerpt string) bool {
 		return false
 	}
 
-	words := strings.Split(strings.Trim(excerpt, "..."), " ")
+	words := strings.Split(strings.TrimSuffix(excerpt, "..."), " ")
 	return len(words) > 4
 }
 

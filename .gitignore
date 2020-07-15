@@ -1,3 +1,4 @@
 .brinfo-cache/
 output/
 brinfo-scrape
+dist/

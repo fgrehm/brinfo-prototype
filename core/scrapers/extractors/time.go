@@ -25,7 +25,6 @@ type timeAttrExtractor struct {
 
 type timeTextExtractor struct {
 	*textExtractor
-	format string
 }
 
 func init() {

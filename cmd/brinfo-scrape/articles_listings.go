@@ -51,8 +51,11 @@ var scrapeArticlesListingCmd = &cobra.Command{
 
 func init() {
 	scrapeArticlesListingCmd.Flags().StringVarP(&scrapeArticlesListingFlags.linkContainer, "link-container", "l", "", "CSS selector for the element that wraps links to scrape (required)")
-	scrapeArticlesListingCmd.MarkFlagRequired("link-container")
 	scrapeArticlesListingCmd.Flags().StringVarP(&scrapeArticlesListingFlags.urlExtractor, "url-extractor", "u", "a[href] | href", "CSS selector for the actual link, nested under the elements wrapped by the container")
 	scrapeArticlesListingCmd.Flags().StringVarP(&scrapeArticlesListingFlags.publishedAtExtractor, "published-at-extractor", "p", "", "CSS selector for the actual link, nested under the elements wrapped by the container")
 	scrapeArticlesListingCmd.Flags().StringVarP(&scrapeArticlesListingFlags.imageURLExtractor, "image-url-extractor", "i", "", "CSS selector for the actual link, nested under the elements wrapped by the container")
+
+	if err := scrapeArticlesListingCmd.MarkFlagRequired("link-container"); err != nil {
+		panic(err)
+	}
 }

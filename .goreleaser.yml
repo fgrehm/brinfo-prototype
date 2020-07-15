@@ -1,0 +1,15 @@
+before:
+  hooks:
+    - go generate ./...
+builds:
+- env:
+  - CGO_ENABLED=0
+  main: ./cmd/brinfo-scrape
+  binary: brinfo-scrape
+  goarch:
+    - amd64
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  # TODO: Enable this
+  skip: false
