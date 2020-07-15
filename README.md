@@ -11,3 +11,9 @@ informações que serão consumidas pelo [covid19br.pub](https://covid19br.pub).
 Como o projeto armazena os dados de publicações que não são necessariamente
 relacionadas a pandemia de COVID-19, será possível reimportar os dados num novo
 banco de dados no futuro.
+
+## Instalação
+
+```sh
+curl -sSfL https://github.com/fgrehm/brinfo/raw/master/install.sh | sh -s
+```
