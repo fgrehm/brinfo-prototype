@@ -16,7 +16,11 @@ jobs:
       id: go
     - uses: actions/checkout@v2
     - name: Build and test
-      run: make ci
+      run: make build test
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v1
+      with:
+        version: v1.26
     - uses: goreleaser/goreleaser-action@v2
       with:
         args: release --rm-dist
