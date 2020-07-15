@@ -17,9 +17,6 @@ jobs:
         fetch-depth: 0
     - name: Build and test
       run: make build test
-    - uses: goreleaser/goreleaser-action@v2
-      with:
-        args: release --snapshot --rm-dist
 
   golangci:
     name: Lint
@@ -30,3 +27,12 @@ jobs:
         uses: golangci/golangci-lint-action@v1
         with:
           version: v1.26
+
+  gorelease:
+    name: Test gorelease
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: goreleaser/goreleaser-action@v2
+        with:
+          args: release --snapshot --rm-dist
